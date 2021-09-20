@@ -1,0 +1,32 @@
+.UserInputs {
+  padding-top: 0;
+}
+
+body::before {
+  background: rgba(255, 255, 255, 0.25) no-repeat center/100% url(LogStream.svg);
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 50px;
+  width: 100%;
+  height: calc(100vh - 50px);
+  opacity: 0.025;
+  background-size: cover;
+  z-index: -1;
+}
+
+.UserInputs .range-slider__wrap--lg,
+.UserInputs .range-slider__wrap--lg input {
+  width: 100%;
+}
+
+.UserInputs label {
+  margin-top: 50px;
+}
+
+@media (max-width: 767px) {
+  .UserInputs label {
+    margin-top: 20px;
+  }
+}

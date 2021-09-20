@@ -1,0 +1,13 @@
+$navbar-dark-color: #fff;
+$navbar-dark-hover-color: #fff;
+$navbar-dark-active-color: #fff;
+
+body {
+  height: 100vh;
+}
+
+#root {
+  height: 100vh;
+}
+
+@import "~bootstrap/scss/bootstrap";

@@ -40,7 +40,7 @@ jobs:
 
       - name: Copy build to S3
         run: |
-          aws s3 sync build s3://criblsizing.info
+          aws s3 sync build s3://criblsizing.info --delete
         env:
           AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
           AWS_REGION: us-east-1

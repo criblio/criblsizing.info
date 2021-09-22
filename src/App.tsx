@@ -79,6 +79,7 @@ function App() {
                         <option>32</option>
                         <option>48</option>
                         <option>64</option>
+                        <option>96</option>
                     </Form.Control>
                 </Col>
                 <Col xs={12} md={4}>
@@ -96,7 +97,7 @@ function App() {
                     <Form.Control
                         type="number"
                         defaultValue={cpuAvailability}
-                        onChange={(e) => setCpuAvailability(parseInt(e.target.value))}
+                        onChange={(e) => setCpuAvailability(parseInt(e.target.value) || cpuAvailability)}
                     />
                     <Form.Text className="text-muted">per Node</Form.Text>
                 </Col>

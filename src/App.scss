@@ -1,7 +1,4 @@
-.UserInputs {
-  padding-top: 0;
-}
-
+// LogStream background image
 body::before {
   background: rgba(255, 255, 255, 0.25) no-repeat center/100% url(LogStream.svg);
   content: '';
@@ -16,17 +13,74 @@ body::before {
   z-index: -1;
 }
 
-.UserInputs .range-slider__wrap--lg,
-.UserInputs .range-slider__wrap--lg input {
-  width: 100%;
+// Custom stylesheet for the app
+.Primary {
+  padding: 40px 0;
+
+  & .UserInputs {
+    padding: 0;
+
+    & .row {
+      margin-top: 30px;
+    }
+
+    & label {
+      margin-top: 30px;
+    }
+
+    & .row:first-child {
+      margin-top: 0;
+
+      & label {
+        margin-top: 15px;
+      }
+    }
+  }
 }
 
-.UserInputs label {
-  margin-top: 50px;
-}
-
+// Small width / mobile
 @media (max-width: 767px) {
-  .UserInputs label {
-    margin-top: 20px;
+  .Primary {
+    padding: 15px 10px;
+
+    & label {
+      margin-top: 20px;
+    }
+
+    & .row {
+      margin-top: 10px;
+    }
+  }
+}
+
+// Overrides for the Range Slider
+$theme-colors: (
+  "primary": #00cccc
+);
+
+@import "~react-bootstrap-range-slider/dist/react-bootstrap-range-slider.scss";
+
+.range-slider__wrap {
+  & input {
+    width: 100%;
+  }
+
+  & .range-slider__tooltip {
+    position: unset;
+    opacity: 100%;
+    background-color: unset;
+
+    & .range-slider__tooltip__caret {
+      opacity: 0;
+    }
+
+    & .range-slider__tooltip__label {
+      --bs-text-opacity: 1;
+      color: #6c757d !important;
+      display: block;
+      transform: unset;
+      background: unset;
+      padding: unset;
+    }
   }
 }

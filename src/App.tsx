@@ -138,7 +138,7 @@ function App() {
                         {inbound + outbound < 1
                             ? "less than 1 "
                             : inbound + outbound}{" "}
-                        TB/day you would need:
+                        TB/day throughput you would need:
                     </p>
                     <ul>
                         <li style={{fontSize: 18}}>
@@ -150,10 +150,6 @@ function App() {
                         <li>Master Node: 1 8-vCPUs, 8 GB server</li>
 
                         <li>Optional: An additional worker node, for HA</li>
-                        <li>
-                            This environment supports {inbound + outbound}{" "}
-                            TB/day
-                        </li>
                     </ul>
                 </Col>
             </Row>

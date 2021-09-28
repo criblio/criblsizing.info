@@ -67,7 +67,7 @@ $theme-colors: (
 
   & .range-slider__tooltip {
     position: unset;
-    opacity: 100%;
+    opacity: 1;
     background-color: unset;
 
     & .range-slider__tooltip__caret {
@@ -75,12 +75,17 @@ $theme-colors: (
     }
 
     & .range-slider__tooltip__label {
-      --bs-text-opacity: 1;
-      color: #6c757d !important;
+      color: #6c757d;
       display: block;
       transform: unset;
       background: unset;
       padding: unset;
+    }
+  }
+
+  &:hover {
+    .range-slider__tooltip:not(.range-slider__tooltip--off):not(.range-slider__tooltip--disabled) {
+      opacity: 1;
     }
   }
 }

@@ -9141,10 +9141,10 @@ react-app-polyfill@^2.0.0:
     regenerator-runtime "^0.13.7"
     whatwg-fetch "^3.4.1"
 
-react-bootstrap-range-slider@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/react-bootstrap-range-slider/-/react-bootstrap-range-slider-3.0.2.tgz#e5c52e8296a57711d2baeefad4b7fa2c9e06a3f4"
-  integrity sha512-Fk/dbIcu/wKcDF7CdIuPUxPAc9u2JBpVJ96wgAiGkTwYxZgAB37XzoMkLgAX8RfdRkkYS12WntCXMkdyDGsHFg==
+react-bootstrap-range-slider@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/react-bootstrap-range-slider/-/react-bootstrap-range-slider-3.0.3.tgz#6b99a2fac775030814d30fb9003e5ce88db95137"
+  integrity sha512-D2L0yDltDQCC0Yq40vHgVL2hHYVa+cLHv2OqgzuFUEB/IdqzHbz22yGjuj5jS12VIRB1CX+KxzeH+7nBojg+Sg==
   dependencies:
     classnames "^2.3.1"
     prop-types "^15.7.2"

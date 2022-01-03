@@ -1,14 +1,28 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import './App.scss'
 import {Container, Col, Form, Row, Table} from "react-bootstrap";
 import RangeSlider from "react-bootstrap-range-slider";
+import { getQueryStringValue, setQueryStringValue } from "./queryString";
+
+function useQueryString(key: string, initialValue: any) {
+    const [value, setValue] = useState(getQueryStringValue(key) || initialValue);
+    const onSetValue = useCallback(
+        newValue => {
+            setValue(newValue);
+            setQueryStringValue(key, newValue);
+        },
+        [key]
+    );
+
+    return [value, onSetValue];
+}
 
 function App() {
-    const [inbound, setInbound] = useState(0);
-    const [outbound, setOutbound] = useState(0);
-    const [vCPU, setvCPU] = useState(4);
-    const [speed, setSpeed] = useState(3.0);
-    const [cpuAvailability, setCpuAvailability] = useState(-2);
+    const [inbound, setInbound] = useQueryString("in",0);
+    const [outbound, setOutbound] = useQueryString("out", 0);
+    const [vCPU, setvCPU] = useQueryString("vcpu", 4);
+    const [speed, setSpeed] = useQueryString("cpuspeed", 3.0);
+    const [cpuAvailability, setCpuAvailability] = useQueryString("cpuavailable",-2);
     const [totalThroughput,] = useState(400);
     const ptp = ((totalThroughput / 2) * speed) / 3;
     // const inOut = outbound + inbound;
@@ -53,6 +67,7 @@ function App() {
                     <Col>
                         <Form.Label>Outbound Data Volume</Form.Label>
                         <RangeSlider
+                            data-testid={"outbound"}
                             value={outbound}
                             min={0}
                             max={100}
@@ -115,7 +130,7 @@ function App() {
                                 <td>{Math.round(ptp)} GB/day</td>
                             </tr>
                             <tr>
-                                <td>Worker Processes</td>
+                                <td>Required Worker Processes</td>
                                 <td>{Math.round(workerProcesses)} processes</td>
                             </tr>
                             <tr>
@@ -128,7 +143,7 @@ function App() {
                             </tr>
                             <tr>
                                 <td>Environment Throughput</td>
-                                <td>{Math.round(envThroughput)} TB/day</td>
+                                <td>{envThroughput < 1 ? "< 1" : Math.round(envThroughput)} TB/day</td>
                             </tr>
                             </tbody>
                         </Table>

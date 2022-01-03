@@ -33,16 +33,12 @@ jobs:
         run: |
           yarn test
 
-      - name: Generate AWS Token
-        run: |
-          curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sigstore" | jq -r '.value' > $AWS_WEB_IDENTITY_TOKEN_FILE
-        env:
-          AWS_WEB_IDENTITY_TOKEN_FILE: /tmp/awscreds
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
 
       - name: Copy build to S3
         run: |
           aws s3 sync build s3://criblsizing.info --delete
-        env:
-          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-          AWS_REGION: us-east-1
-          AWS_WEB_IDENTITY_TOKEN_FILE: /tmp/awscreds

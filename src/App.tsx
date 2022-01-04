@@ -111,7 +111,7 @@ function App() {
                         <Form.Text className="text-muted">CPU Speed in GHz</Form.Text>
                     </Col>
                     <Col xs={12} md={4}>
-                        <Form.Label><a href={"https://docs.cribl.io/logstream/scaling/#scale-up"} target={"_blank"}>vCPU Availability</a></Form.Label>
+                        <Form.Label><a href={"https://docs.cribl.io/logstream/scaling/#scale-up"} target={"_blank"} rel={"noreferrer"}>vCPU Availability</a></Form.Label>
                         <Form.Control
                             type="number"
                             defaultValue={cpuAvailability}

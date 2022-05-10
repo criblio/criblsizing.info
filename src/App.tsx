@@ -164,7 +164,7 @@ function App() {
                                     {Math.round(vCPU * 2)} GB server(s)
                                 </strong>
                             </li>
-                            <li>Master Node: 1 8-vCPUs, 8 GB server</li>
+                            <li>Leader Node: 1 8-vCPUs, 8 GB server</li>
 
                             <li>Optional: An additional worker node, for HA</li>
                         </ul>

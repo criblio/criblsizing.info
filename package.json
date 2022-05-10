@@ -11,9 +11,12 @@
     "postcss-custom-properties": "^12.1.7",
     "query-string": "^7.1.1",
     "react": "^18.1.0",
-    "react-bootstrap": "^2.2.0",
+    "react-bootstrap": "^2.2.3",
     "react-bootstrap-range-slider": "^3.0.3",
     "react-dom": "^18.1.0"
+  },
+  "resolutions": {
+    "autoprefixer": "10.4.5"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -38,9 +41,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "resolutions": {
-    "react-scripts/postcss-preset-env/postcss-custom-properties": "^10.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.2",

@@ -9,14 +9,15 @@ test('Ensure calc box is shown with defaults', () => {
   expect(screen.getByText(/2 workers/i)).toBeInTheDocument();
 });
 
-test('Ensure it updates correctly', () => {
+test('Ensure it updates correctly', async () => {
   render(<App />);
 
   const inbound = screen.getByTestId("inbound");
   fireEvent.change(inbound, {target: {value: 10}})
 
   const input = screen.getByTestId("cpu-speed");
-  userEvent.type(input,".6");
+  await userEvent.click(input);
+  await userEvent.keyboard(".6");
 
   expect(screen.getByTestId("cpu-speed")).toHaveValue(3.6);
   expect(screen.getByText(/43 processes/i)).toBeInTheDocument();

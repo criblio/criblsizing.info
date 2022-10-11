@@ -52,7 +52,7 @@ function App() {
                             data-testid={"inbound"}
                             value={inbound}
                             min={0}
-                            max={100}
+                            max={1000}
                             step={1}
                             size="sm"
                             tooltipLabel={(e) =>
@@ -70,7 +70,7 @@ function App() {
                             data-testid={"outbound"}
                             value={outbound}
                             min={0}
-                            max={100}
+                            max={1000}
                             step={1}
                             size="sm"
                             tooltipLabel={(e) =>

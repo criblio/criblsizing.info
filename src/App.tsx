@@ -1,6 +1,6 @@
-import React, {useState, useCallback} from 'react';
+import React, { useState, useCallback } from 'react';
 import './App.scss'
-import {Container, Col, Form, Row, Table} from "react-bootstrap";
+import { Container, Col, Form, Row, Table } from "react-bootstrap";
 import RangeSlider from "react-bootstrap-range-slider";
 import { getQueryStringValue, setQueryStringValue } from "./queryString";
 
@@ -18,12 +18,12 @@ function useQueryString(key: string, initialValue: any) {
 }
 
 function App() {
-    const [inbound, setInbound] = useQueryString("in",0);
+    const [inbound, setInbound] = useQueryString("in", 0);
     const [outbound, setOutbound] = useQueryString("out", 0);
     const [cpuType, setCpuType] = useQueryString('cputype', 'x86_64')
     const [vCPU, setvCPU] = useQueryString("vcpu", 4);
     const [speed, setSpeed] = useQueryString("cpuspeed", 3.0);
-    const [cpuAvailability, setCpuAvailability] = useQueryString("cpuavailable",-2);
+    const [cpuAvailability, setCpuAvailability] = useQueryString("cpuavailable", -2);
     const [totalThroughput,] = useState(400);
     const ptp = ((cpuType === 'x86_64' ? (totalThroughput / 2) : 450) * speed) / 3;
     // const inOut = outbound + inbound;
@@ -138,30 +138,30 @@ function App() {
                         <h3>Calculations</h3>
                         <Table striped bordered hover>
                             <tbody>
-                            <tr>
-                                <td>Processing Throughput per vCPU</td>
-                                <td>{Math.round(ptp)} GB/day</td>
-                            </tr>
-                            <tr>
-                                <td>Required Worker Processes</td>
-                                <td>{Math.round(workerProcesses)} processes</td>
-                            </tr>
-                            <tr>
-                                <td>Processes per Worker Node</td>
-                                <td>{Math.round(processesPerNode)} processes</td>
-                            </tr>
-                            <tr>
-                                <td>Required Worker Nodes</td>
-                                <td>{Math.round(requiredWorkerNodes)} workers</td>
-                            </tr>
-                            <tr>
-                                <td>Environment Throughput</td>
-                                <td>{envThroughput < 1 ? "< 1" : Math.round(envThroughput)} TB/day</td>
-                            </tr>
+                                <tr>
+                                    <td>Processing Throughput per vCPU</td>
+                                    <td>{Math.round(ptp)} GB/day</td>
+                                </tr>
+                                <tr>
+                                    <td>Required Worker Processes</td>
+                                    <td>{Math.round(workerProcesses)} processes</td>
+                                </tr>
+                                <tr>
+                                    <td>Processes per Worker Node</td>
+                                    <td>{Math.round(processesPerNode)} processes</td>
+                                </tr>
+                                <tr>
+                                    <td>Required Worker Nodes</td>
+                                    <td>{Math.round(requiredWorkerNodes)} workers</td>
+                                </tr>
+                                <tr>
+                                    <td>Environment Throughput</td>
+                                    <td>{envThroughput < 1 ? "< 1" : Math.round(envThroughput)} TB/day</td>
+                                </tr>
                             </tbody>
                         </Table>
                     </Col>
-                    <Col xs={12} md={{span: 6, offset: 1}}>
+                    <Col xs={12} md={{ span: 6, offset: 1 }}>
                         <h3>Analysis</h3>
                         <p>
                             For{" "}
@@ -171,7 +171,7 @@ function App() {
                             TB/day throughput you would need:
                         </p>
                         <ul>
-                            <li style={{fontSize: 18}}>
+                            <li style={{ fontSize: 18 }}>
                                 <strong>
                                     Worker node(s): {Math.round(requiredWorkerNodes)} {vCPU}-vCPUs{" "}
                                     {Math.round(vCPU * 2)} GB server(s)

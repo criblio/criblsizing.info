@@ -20,12 +20,12 @@ function useQueryString(key: string, initialValue: any) {
 function App() {
     const [inbound, setInbound] = useQueryString("in", 0);
     const [outbound, setOutbound] = useQueryString("out", 0);
-    const [cpuType, setCpuType] = useQueryString('cputype', 'x86_64')
+    const [cpuType, setCpuType] = useQueryString('cputype', 'x86_64_ht');
     const [vCPU, setvCPU] = useQueryString("vcpu", 4);
     const [speed, setSpeed] = useQueryString("cpuspeed", 3.0);
     const [cpuAvailability, setCpuAvailability] = useQueryString("cpuavailable", -2);
-    const [totalThroughput,] = useState(400);
-    const ptp = ((cpuType === 'x86_64' ? (totalThroughput / 2) : 450) * speed) / 3;
+    const defaultThroughput: { [key: string]: number } = {'x86_64': 400, 'x86_64_ht': 200, 'arm': 480}
+    const ptp = (defaultThroughput[cpuType] * speed) / 3;
     // const inOut = outbound + inbound;
     const workerProcesses = ((outbound + inbound) * 1024) / ptp || 4;
 
@@ -92,8 +92,9 @@ function App() {
                             defaultValue={cpuType}
                             onChange={(e) => setCpuType(e.target.value || cpuType)}
                         >
+                            <option value={"x86_64_ht"}>x86_64 (Hyperthreaded)</option>
                             <option>x86_64</option>
-                            <option>ARM</option>
+                            <option value={"arm"}>ARM</option>
                         </Form.Control>
                     </Col>
                     <Col xs={12} md={3}>

@@ -8,7 +8,7 @@
   "private": true,
   "dependencies": {
     "autoprefixer": "10.4.13",
-    "bootstrap": "^5.2.2",
+    "bootstrap": "^5.2.3",
     "postcss-custom-properties": "^13.0.0",
     "query-string": "^7.1.1",
     "react": "^18.2.0",

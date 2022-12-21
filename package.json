@@ -10,7 +10,7 @@
     "autoprefixer": "10.4.13",
     "bootstrap": "^5.2.3",
     "postcss-custom-properties": "^13.0.0",
-    "query-string": "^7.1.1",
+    "query-string": "^8.1.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.6.0",
     "react-bootstrap-range-slider": "^3.0.8",

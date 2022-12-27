@@ -128,6 +128,7 @@ function App() {
                     <Col xs={12} md={3}>
                         <Form.Label><a href={"https://docs.cribl.io/stream/scaling/#scale-up"} target={"_blank"} rel={"noreferrer"}>vCPU Availability</a></Form.Label>
                         <Form.Control
+                            data-testid={"cpu-availability"}
                             type="number"
                             defaultValue={cpuAvailability}
                             onChange={(e) => setCpuAvailability(parseInt(e.target.value) || cpuAvailability)}
@@ -150,7 +151,7 @@ function App() {
                                 </tr>
                                 <tr>
                                     <td>Required Worker Processes</td>
-                                    <td>{`${Math.round(workerProcesses)} ${pluralize(Math.round(processesPerNode), 'process', 'processes')}`}</td>
+                                    <td>{`${Math.round(workerProcesses)} ${pluralize(Math.round(workerProcesses), 'process', 'processes')}`}</td>
                                 </tr>
                                 <tr>
                                     <td>Processes per Worker</td>

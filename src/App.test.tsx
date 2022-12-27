@@ -46,3 +46,18 @@ test('Ensure loads correctly', () => {
   expect(screen.getByTestId("outbound")).toHaveValue("5");
   expect(screen.getByTestId("cpu-speed")).toHaveValue(5);
 })
+
+describe("Ensure plurality is correct", () => {
+  test("Ensure plural", () => {
+    render(<App />);
+    expect(screen.getByText(/2 processes/i)).toBeInTheDocument();
+  })
+
+  test("Ensure singular", () => {
+    render(<App />);
+    const cpuavail = screen.getByTestId("cpu-availability");
+    fireEvent.change(cpuavail, {target: {value: 1}})
+    expect(screen.getByText(/61 processes/i)).toBeInTheDocument();
+    expect(screen.getByText(/(?<!\d+)1 process(?!es)/i)).toBeInTheDocument();
+  })
+});

@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import './App.scss'
 import { Container, Col, Form, Row, Table } from "react-bootstrap";
 import RangeSlider from "react-bootstrap-range-slider";
-import { getQueryStringValue, setQueryStringValue } from "./queryString";
+import { getQueryStringValue, setQueryStringValue } from "./utils/queryString";
+import {pluralize} from "./utils/plural";
 
 function useQueryString(key: string, initialValue: any) {
     const [value, setValue] = useState(getQueryStringValue(key) || initialValue);
@@ -37,7 +38,7 @@ function App() {
     const requiredWorkerNodes =
         workerProcesses / processesPerNode >= 2
             ? workerProcesses / processesPerNode
-            : 2;
+            : 1;
 
     const envThroughput = (ptp * processesPerNode * requiredWorkerNodes) / 1024;
 
@@ -98,7 +99,7 @@ function App() {
                         </Form.Control>
                     </Col>
                     <Col xs={12} md={3}>
-                        <Form.Label>Total vCPUs per Node</Form.Label>
+                        <Form.Label>Total vCPUs per Worker</Form.Label>
 
                         <Form.Control
                             as="select"
@@ -140,25 +141,26 @@ function App() {
                         <Table striped bordered hover>
                             <tbody>
                                 <tr>
+                                    <td>Environment Throughput</td>
+                                    <td>{envThroughput < 1 ? "< 1" : Math.round(envThroughput)} TB/day</td>
+                                </tr>
+                                <tr>
                                     <td>Processing Throughput per vCPU</td>
                                     <td>{Math.round(ptp)} GB/day</td>
                                 </tr>
                                 <tr>
                                     <td>Required Worker Processes</td>
-                                    <td>{Math.round(workerProcesses)} processes</td>
+                                    <td>{`${Math.round(workerProcesses)} ${pluralize(Math.round(processesPerNode), 'process', 'processes')}`}</td>
                                 </tr>
                                 <tr>
-                                    <td>Processes per Worker Node</td>
-                                    <td>{Math.round(processesPerNode)} processes</td>
+                                    <td>Processes per Worker</td>
+                                    <td>{`${Math.round(processesPerNode)} ${pluralize(Math.round(processesPerNode), 'process', 'processes')}`}</td>
                                 </tr>
                                 <tr>
-                                    <td>Required Worker Nodes</td>
-                                    <td>{Math.round(requiredWorkerNodes)} workers</td>
+                                    <td>Required Workers</td>
+                                    <td><strong>{`${Math.round(requiredWorkerNodes)} ${pluralize(Math.round(requiredWorkerNodes), 'worker')}`}</strong></td>
                                 </tr>
-                                <tr>
-                                    <td>Environment Throughput</td>
-                                    <td>{envThroughput < 1 ? "< 1" : Math.round(envThroughput)} TB/day</td>
-                                </tr>
+
                             </tbody>
                         </Table>
                     </Col>
@@ -174,13 +176,11 @@ function App() {
                         <ul>
                             <li style={{ fontSize: 18 }}>
                                 <strong>
-                                    Worker node(s): {Math.round(requiredWorkerNodes)} {vCPU}-vCPUs{" "}
-                                    {Math.round(vCPU * 2)} GB server(s)
+                                    {pluralize(Math.round(requiredWorkerNodes), 'Worker')}: {Math.round(requiredWorkerNodes)} {vCPU}-vCPUs,{" "}
+                                    {Math.round(vCPU * 2)} GB RAM {pluralize(Math.round(requiredWorkerNodes), 'server')}
                                 </strong>
                             </li>
-                            <li>Leader Node: 1 8-vCPUs, 8 GB server</li>
-
-                            <li>Optional: An additional worker node, for HA</li>
+                            <li>Leader: 1 8-vCPUs, 8 GB RAM server</li>
                         </ul>
                     </Col>
                 </Row>

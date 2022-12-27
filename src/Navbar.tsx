@@ -1,6 +1,6 @@
 import {Container} from "react-bootstrap";
-import logo from "./Cribl.svg";
-import gh from "./Github.svg"
+import logo from "./images/Cribl.svg";
+import gh from "./images/Github.svg"
 import {Navbar, Nav} from 'react-bootstrap'
 
 const Header = () => {

@@ -36,7 +36,7 @@ function App() {
             : cpuAvailability;
 
     const requiredWorkerNodes =
-        workerProcesses / processesPerNode >= 2
+        workerProcesses / processesPerNode >= 1
             ? workerProcesses / processesPerNode
             : 1;
 
@@ -147,19 +147,19 @@ function App() {
                                 </tr>
                                 <tr>
                                     <td>Processing Throughput per vCPU</td>
-                                    <td>{Math.round(ptp)} GB/day</td>
+                                    <td>{Math.ceil(ptp)} GB/day</td>
                                 </tr>
                                 <tr>
                                     <td>Required Worker Processes</td>
-                                    <td>{`${Math.round(workerProcesses)} ${pluralize(Math.round(workerProcesses), 'process', 'processes')}`}</td>
+                                    <td>{`${Math.ceil(workerProcesses)} ${pluralize(Math.ceil(workerProcesses), 'process', 'processes')}`}</td>
                                 </tr>
                                 <tr>
                                     <td>Processes per Worker</td>
-                                    <td>{`${Math.round(processesPerNode)} ${pluralize(Math.round(processesPerNode), 'process', 'processes')}`}</td>
+                                    <td>{`${Math.ceil(processesPerNode)} ${pluralize(Math.ceil(processesPerNode), 'process', 'processes')}`}</td>
                                 </tr>
                                 <tr>
                                     <td>Required Workers</td>
-                                    <td><strong>{`${Math.round(requiredWorkerNodes)} ${pluralize(Math.round(requiredWorkerNodes), 'worker')}`}</strong></td>
+                                    <td><strong>{`${Math.ceil(requiredWorkerNodes)} ${pluralize(Math.ceil(requiredWorkerNodes), 'worker')}`}</strong></td>
                                 </tr>
 
                             </tbody>
@@ -177,8 +177,8 @@ function App() {
                         <ul>
                             <li style={{ fontSize: 18 }}>
                                 <strong>
-                                    {pluralize(Math.round(requiredWorkerNodes), 'Worker')}: {Math.round(requiredWorkerNodes)} {vCPU}-vCPUs,{" "}
-                                    {Math.round(vCPU * 2)} GB RAM {pluralize(Math.round(requiredWorkerNodes), 'server')}
+                                    {pluralize(Math.ceil(requiredWorkerNodes), 'Worker')}: {Math.ceil(requiredWorkerNodes)} {vCPU}-vCPUs,{" "}
+                                    {Math.ceil(vCPU * 2)} GB RAM {pluralize(Math.ceil(requiredWorkerNodes), 'server')}
                                 </strong>
                             </li>
                             <li>Leader: 1 8-vCPUs, 8 GB RAM server</li>

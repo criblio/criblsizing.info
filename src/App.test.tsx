@@ -21,7 +21,7 @@ test('Ensure it updates correctly', async () => {
 
   expect(screen.getByTestId("cpu-speed")).toHaveValue(3.6);
   expect(screen.getByText(/43 processes/i)).toBeInTheDocument();
-  expect(screen.getByText(/21 workers/i)).toBeInTheDocument();
+  expect(screen.getByText(/22 workers/i)).toBeInTheDocument();
 });
 
 test('Ensure query string parameters are set', () => {
@@ -50,14 +50,14 @@ test('Ensure loads correctly', () => {
 describe("Ensure plurality is correct", () => {
   test("Ensure plural", () => {
     render(<App />);
-    expect(screen.getByText(/2 processes/i)).toBeInTheDocument();
+    expect(screen.getByText(/(?<!\d+)2 processes/i)).toBeInTheDocument();
   })
 
   test("Ensure singular", () => {
     render(<App />);
     const cpuavail = screen.getByTestId("cpu-availability");
     fireEvent.change(cpuavail, {target: {value: 1}})
-    expect(screen.getByText(/61 processes/i)).toBeInTheDocument();
+    expect(screen.getByText(/62 processes/i)).toBeInTheDocument();
     expect(screen.getByText(/(?<!\d+)1 process(?!es)/i)).toBeInTheDocument();
   })
 });

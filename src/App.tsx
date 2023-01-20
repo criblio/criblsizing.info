@@ -122,6 +122,7 @@ function App() {
                             defaultValue={speed}
                             data-testid={"cpu-speed"}
                             onChange={(e) => setSpeed(parseFloat(e.target.value) || speed)}
+                            step={0.1}
                         />
                         <Form.Text className="text-muted">CPU Speed in GHz</Form.Text>
                     </Col>

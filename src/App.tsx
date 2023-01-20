@@ -133,6 +133,8 @@ function App() {
                             type="number"
                             defaultValue={cpuAvailability}
                             onChange={(e) => setCpuAvailability(parseInt(e.target.value) || cpuAvailability)}
+                            min={-vCPU + 1}
+                            max={vCPU}
                         />
                         <Form.Text className="text-muted">per Node</Form.Text>
                     </Col>

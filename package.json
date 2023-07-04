@@ -10,11 +10,11 @@
   "exports": "./index.js",
   "dependencies": {
     "autoprefixer": "10.4.14",
-    "bootstrap": "^5.2.3",
-    "postcss-custom-properties": "^13.1.5",
+    "bootstrap": "^5.3.0",
+    "postcss-custom-properties": "^13.2.1",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
-    "react-bootstrap": "^2.7.4",
+    "react-bootstrap": "^2.8.0",
     "react-bootstrap-range-slider": "^3.0.8",
     "react-dom": "^18.2.0",
     "ts-node": "^10.9.1"
@@ -50,13 +50,13 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.4.3",
-    "@types/jest": "^29.5.1",
-    "@types/node": "^18.16.1",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.1",
+    "@types/jest": "^29.5.2",
+    "@types/node": "^20.3.3",
+    "@types/react": "^18.2.14",
+    "@types/react-dom": "^18.2.6",
     "react-scripts": "5.0.1",
-    "sass": "^1.62.1",
-    "typescript": "^5.0.4"
+    "sass": "^1.63.6",
+    "typescript": "^5.1.6"
   },
   "jest": {
     "transform": {

@@ -9,7 +9,7 @@
   "type": "module",
   "exports": "./index.js",
   "dependencies": {
-    "autoprefixer": "10.4.15",
+    "autoprefixer": "10.4.16",
     "bootstrap": "^5.3.2",
     "postcss-custom-properties": "^13.3.1",
     "query-string": "^8.1.0",

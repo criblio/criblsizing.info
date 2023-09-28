@@ -14,7 +14,7 @@
     "postcss-custom-properties": "^13.3.2",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
-    "react-bootstrap": "^2.8.0",
+    "react-bootstrap": "^2.9.0",
     "react-bootstrap-range-slider": "^3.0.8",
     "react-dom": "^18.2.0",
     "ts-node": "^10.9.1"
@@ -51,9 +51,9 @@
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.5.1",
     "@types/jest": "^29.5.5",
-    "@types/node": "^20.7.0",
+    "@types/node": "^20.7.1",
     "@types/react": "^18.2.23",
-    "@types/react-dom": "^18.2.7",
+    "@types/react-dom": "^18.2.8",
     "react-scripts": "5.0.1",
     "sass": "^1.68.0",
     "typescript": "^5.2.2"

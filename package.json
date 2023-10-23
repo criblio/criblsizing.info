@@ -14,7 +14,7 @@
     "postcss-custom-properties": "^13.3.2",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
-    "react-bootstrap": "^2.9.0",
+    "react-bootstrap": "^2.9.1",
     "react-bootstrap-range-slider": "^3.0.8",
     "react-dom": "^18.2.0",
     "ts-node": "^10.9.1"
@@ -50,12 +50,12 @@
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.5.1",
-    "@types/jest": "^29.5.5",
-    "@types/node": "^20.8.6",
-    "@types/react": "^18.2.28",
-    "@types/react-dom": "^18.2.13",
+    "@types/jest": "^29.5.6",
+    "@types/node": "^20.8.7",
+    "@types/react": "^18.2.31",
+    "@types/react-dom": "^18.2.14",
     "react-scripts": "5.0.1",
-    "sass": "^1.69.3",
+    "sass": "^1.69.4",
     "typescript": "^5.2.2"
   },
   "jest": {

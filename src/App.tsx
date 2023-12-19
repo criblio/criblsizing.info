@@ -20,15 +20,22 @@ function useQueryString(key: string, initialValue: any) {
 
 function App() {
     const [inbound, setInbound] = useQueryString("in", 0);
+    const [inboundTcpConns, setInboundTcpConns] = useQueryString("inconns", 0);
     const [outbound, setOutbound] = useQueryString("out", 0);
     const [cpuType, setCpuType] = useQueryString('cputype', 'x86_64_ht');
     const [vCPU, setvCPU] = useQueryString("vcpu", 4);
     const [speed, setSpeed] = useQueryString("cpuspeed", 3.0);
     const [cpuAvailability, setCpuAvailability] = useQueryString("cpuavailable", -2);
     const defaultThroughput: { [key: string]: number } = {'x86_64': 400, 'x86_64_ht': 200, 'arm': 480}
+    const defaultConnsPerProcess: { [key: string]: number } = {'x86_64': 300, 'x86_64_ht': 300, 'arm': 300}
+    
     const ptp = (defaultThroughput[cpuType] * speed) / 3;
-    // const inOut = outbound + inbound;
-    const workerProcesses = ((outbound + inbound) * 1024) / ptp || 4;
+    const inOut = outbound + inbound;
+    
+    const workerProcessesByThruput = (inOut * 1024) / ptp || 4;
+    const workerProcessesByConns = inboundTcpConns / defaultConnsPerProcess[cpuType];
+
+    const workerProcesses = Math.max(...[workerProcessesByThruput, workerProcessesByConns]);
 
     const processesPerNode =
         cpuAvailability < 0
@@ -61,12 +68,33 @@ function App() {
                                 e >= 1 ? `${e} TB/Day` : `Less than 1 TB/Day`
                             }
                             onChange={(e) => {
-                                setInbound(e.target.value === "0" ? 0 : parseInt(e.target.value) || outbound);
+                                setInbound(e.target.value === "0" ? 0 : parseInt(e.target.value) || inbound);
                             }}
                         />
                     </Col>
 
                     <Col>
+                        <Form.Label>Inbound TCP Connections</Form.Label>
+                        <RangeSlider
+                            data-testid={"inbound-conn"}
+                            value={inboundTcpConns}
+                            min={0}
+                            max={300000}
+                            step={300}
+                            size="sm"
+                            tooltipLabel={(e) =>
+                                e >= 1 ? `${e} Connections` : `No Inbound TCP Connections`
+                            }
+                            onChange={(e) => {
+                                setInboundTcpConns(e.target.value === "0" ? 0 : parseInt(e.target.value) || inboundTcpConns);
+                            }}
+                        />
+                    </Col>
+
+                    
+                </Row>
+                <Row>
+                <Col>
                         <Form.Label>Outbound Data Volume</Form.Label>
                         <RangeSlider
                             data-testid={"outbound"}
@@ -153,8 +181,16 @@ function App() {
                                     <td>{Math.ceil(ptp)} GB/day</td>
                                 </tr>
                                 <tr>
-                                    <td>Required Worker Processes</td>
-                                    <td>{`${Math.ceil(workerProcesses)} ${pluralize(Math.ceil(workerProcesses), 'process', 'processes')}`}</td>
+                                    <td>Max Inbound Connections per vCPU</td>
+                                    <td>{Math.ceil(defaultConnsPerProcess[cpuType])} connections</td>
+                                </tr>
+                                <tr>
+                                    <td>Required Worker Processes by Thruput</td>
+                                    <td>{`${Math.ceil(workerProcessesByThruput)} ${pluralize(Math.ceil(workerProcessesByThruput), 'process', 'processes')}`}</td>
+                                </tr>
+                                <tr>
+                                    <td>Required Worker Processes by Inbound Conns</td>
+                                    <td>{`${Math.ceil(workerProcessesByConns)} ${pluralize(Math.ceil(workerProcessesByConns), 'process', 'processes')}`}</td>
                                 </tr>
                                 <tr>
                                     <td>Processes per Worker</td>
@@ -180,9 +216,9 @@ function App() {
                         <ul>
                             <li style={{ fontSize: 18 }}>
                                 <strong>
-                                    {pluralize(Math.ceil(requiredWorkerNodes), 'Worker')}: {Math.ceil(requiredWorkerNodes)} {vCPU}-vCPUs,{" "}
+                                    Workers: {Math.ceil((requiredWorkerNodes === 1 ? 2 : requiredWorkerNodes))} {vCPU}-vCPUs,{" "}
                                     {Math.ceil(vCPU * 2)} GB RAM {pluralize(Math.ceil(requiredWorkerNodes), 'server')}
-                                </strong>
+                                </strong>{requiredWorkerNodes === 1 ? <small> <i>(Addtl. worker added for redundency)</i></small> : ""} 
                             </li>
                             <li>Leader: 1 8-vCPUs, 8 GB RAM server</li>
                         </ul>

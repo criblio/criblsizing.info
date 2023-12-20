@@ -17,6 +17,7 @@
     "react-bootstrap": "^2.10.0",
     "react-bootstrap-range-slider": "^3.0.8",
     "react-dom": "^18.2.0",
+    "react-icons": "^4.12.0",
     "ts-node": "^10.9.2"
   },
   "resolutions": {

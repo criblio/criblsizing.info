@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import './App.scss'
-import { ButtonGroup, Container, Col, Dropdown, DropdownButton, Form, Row, Table, Accordion } from "react-bootstrap";
+import { Alert, ButtonGroup, Container, Col, Dropdown, DropdownButton, Form, Row, Table, Accordion } from "react-bootstrap";
 import RangeSlider from "react-bootstrap-range-slider";
 import { getQueryStringValue, setQueryStringValue } from "./utils/queryString";
 import { pluralize } from "./utils/plural";
+import { PiWarning } from "react-icons/pi";
 
 function useQueryString(key: string, initialValue: any) {
     const [value, setValue] = useState(getQueryStringValue(key) || initialValue);
@@ -311,6 +312,16 @@ function App() {
                 </Row>
             </Container>
             <hr />
+            {(useSourcePersistentQueue === "true" && inbound===0) ? 
+            <Alert variant={"warning"}>
+            <PiWarning /> Inbound volume is set to less than 1TB, assuming 500GB/day for source persistent queuing calculations.
+          </Alert>
+          : ""}
+          {(useDestinationPersistentQueue === "true" && outbound ===0) ? 
+            <Alert variant={"warning"}>
+            <PiWarning /> Outbound volume is set to less than 1TB, assuming 500GB/day for destination persistent queuing calculations.
+          </Alert>
+          : ""}
             <Container className={"CalculationOutputs"}>
                 <Row>
                     <Col xs={12} md={5}>
@@ -377,6 +388,9 @@ function App() {
                         </ul>
                     </Col>
                 </Row>
+            </Container>
+            <Container>
+
             </Container>
         </Container>
 

@@ -312,16 +312,16 @@ function App() {
                 </Row>
             </Container>
             <hr />
-            {(useSourcePersistentQueue === "true" && inbound===0) ? 
-            <Alert variant={"warning"}>
-            <PiWarning /> Inbound volume is set to less than 1TB, assuming 500GB/day for source persistent queuing calculations.
-          </Alert>
-          : ""}
-          {(useDestinationPersistentQueue === "true" && outbound ===0) ? 
-            <Alert variant={"warning"}>
-            <PiWarning /> Outbound volume is set to less than 1TB, assuming 500GB/day for destination persistent queuing calculations.
-          </Alert>
-          : ""}
+            {(useSourcePersistentQueue === "true" && inbound === 0) ?
+                <Alert variant={"warning"}>
+                    <PiWarning /> Inbound volume is set to less than 1TB, assuming 500GB/day for source persistent queuing calculations.
+                </Alert>
+                : ""}
+            {(useDestinationPersistentQueue === "true" && outbound === 0) ?
+                <Alert variant={"warning"}>
+                    <PiWarning /> Outbound volume is set to less than 1TB, assuming 500GB/day for destination persistent queuing calculations.
+                </Alert>
+                : ""}
             <Container className={"CalculationOutputs"}>
                 <Row>
                     <Col xs={12} md={5}>
@@ -381,8 +381,11 @@ function App() {
                             <li style={{ fontSize: 18 }}>
                                 <strong>
                                     Workers: {Math.ceil((requiredWorkerNodes === 1 ? 2 : requiredWorkerNodes))} {vCPU}-vCPUs,{" "}
-                                    {Math.ceil(vCPU * 2)} GB RAM {pluralize(Math.ceil(requiredWorkerNodes), 'server')}
-                                    {useSourcePersistentQueue === "true" ? `, ${Math.ceil(sPqDiskGbReq / requiredWorkerNodes)} GB Disk (sPQ)`: ""}{useDestinationPersistentQueue === "true" ? `, ${Math.ceil(dPqDiskGbReq / requiredWorkerNodes)} GB Disk (dPQ)` : ""}                                </strong>{requiredWorkerNodes === 1 ? <small> <i>(Addtl. worker added for redundency)</i></small> : ""}
+                                    {Math.ceil(vCPU * 2)} GB RAM
+                                    {useSourcePersistentQueue === "true" ? `, ${Math.ceil(sPqDiskGbReq / requiredWorkerNodes)} GB Disk (sPQ)` : ""}
+                                    {useDestinationPersistentQueue === "true" ? `, ${Math.ceil(dPqDiskGbReq / requiredWorkerNodes)} GB Disk (dPQ)` : ""}
+                                    {" "}{pluralize(Math.ceil(requiredWorkerNodes), 'server')}
+                                </strong>{requiredWorkerNodes === 1 ? <small> <i>(Addtl. worker added for redundency)</i></small> : ""}
                             </li>
                             <li>Leader: 1 8-vCPUs, 8 GB RAM server</li>
                         </ul>

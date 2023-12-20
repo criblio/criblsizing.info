@@ -1,9 +1,9 @@
 {
-  "name": "criblsizing.info",
+  "name": "criblsizing",
   "version": "0.1.0",
   "description": "Cribl Stream Sizing Calculator",
-  "repository": "git@github.com:/bdalpe/criblsizing.info.git",
-  "author": "Brendan Dalpe <bdalpe@gmail.com>",
+  "repository": "git@github.com:SShah7433/criblsizing.git",
+  "author": "Sidd Shah <sidd@cribl.io>",
   "license": "MIT",
   "private": true,
   "type": "module",

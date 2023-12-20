@@ -102,6 +102,7 @@ function App() {
                             onSelect={(e) => {
                                 setInboundTcpConnEps(e || inboundTcpConnEps);
                             }}
+                            variant='outline-secondary'
                         >
                             <Dropdown.Item eventKey="3">3 events/sec/conn</Dropdown.Item>
                             <Dropdown.Item eventKey="33">33 events/sec/conn</Dropdown.Item>

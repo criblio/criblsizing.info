@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import './App.scss'
-import { Container, Col, Form, Row, Table } from "react-bootstrap";
+import { ButtonGroup, Container, Col, Dropdown, DropdownButton, Form, Row, Table } from "react-bootstrap";
 import RangeSlider from "react-bootstrap-range-slider";
 import { getQueryStringValue, setQueryStringValue } from "./utils/queryString";
-import {pluralize} from "./utils/plural";
+import { pluralize } from "./utils/plural";
 
 function useQueryString(key: string, initialValue: any) {
     const [value, setValue] = useState(getQueryStringValue(key) || initialValue);
@@ -21,19 +21,23 @@ function useQueryString(key: string, initialValue: any) {
 function App() {
     const [inbound, setInbound] = useQueryString("in", 0);
     const [inboundTcpConns, setInboundTcpConns] = useQueryString("inconns", 0);
+    const [inboundTcpConnEps, setInboundTcpConnEps] = useQueryString("inconneps", '3');
     const [outbound, setOutbound] = useQueryString("out", 0);
     const [cpuType, setCpuType] = useQueryString('cputype', 'x86_64_ht');
     const [vCPU, setvCPU] = useQueryString("vcpu", 4);
     const [speed, setSpeed] = useQueryString("cpuspeed", 3.0);
     const [cpuAvailability, setCpuAvailability] = useQueryString("cpuavailable", -2);
-    const defaultThroughput: { [key: string]: number } = {'x86_64': 400, 'x86_64_ht': 200, 'arm': 480}
-    const defaultConnsPerProcess: { [key: string]: number } = {'x86_64': 300, 'x86_64_ht': 300, 'arm': 300}
-    
+
+    const defaultThroughput: { [key: string]: number } = { 'x86_64': 400, 'x86_64_ht': 200, 'arm': 480 }
+
+    const labelsTcpConnEps: { [key: string]: string } = { '3': '3 events/sec/conn', '33': '33 events/sec/conn', '100': '100 events/sec/conn' }
+    const defaultConnsPerProcessByEps: { [key: string]: number } = { '3': 5000, '33': 500, '100': 150 }
+
     const ptp = (defaultThroughput[cpuType] * speed) / 3;
     const inOut = outbound + inbound;
-    
+
     const workerProcessesByThruput = (inOut * 1024) / ptp || 4;
-    const workerProcessesByConns = inboundTcpConns / defaultConnsPerProcess[cpuType];
+    const workerProcessesByConns = inboundTcpConns / defaultConnsPerProcessByEps[inboundTcpConnEps];
 
     const workerProcesses = Math.max(...[workerProcessesByThruput, workerProcessesByConns]);
 
@@ -55,7 +59,7 @@ function App() {
             <p>Sizing is per worker group and for sustained worker loads.</p>
             <Container className={"UserInputs"}>
                 <Row>
-                    <Col>
+                    <Col sm={6}>
                         <Form.Label>Inbound Data Volume</Form.Label>
                         <RangeSlider
                             data-testid={"inbound"}
@@ -72,11 +76,10 @@ function App() {
                             }}
                         />
                     </Col>
-
-                    <Col>
+                    <Col sm={4}>
                         <Form.Label>Inbound TCP Connections</Form.Label>
                         <RangeSlider
-                            data-testid={"inbound-conn"}
+                            data-testid={"inbound-tcp-conn"}
                             value={inboundTcpConns}
                             min={0}
                             max={300000}
@@ -90,11 +93,24 @@ function App() {
                             }}
                         />
                     </Col>
-
-                    
+                    <Col sm={2}>
+                        <Form.Label>Sustained Volume</Form.Label>
+                        <DropdownButton
+                            as={ButtonGroup}
+                            title={labelsTcpConnEps[inboundTcpConnEps]}
+                            id="bg-nested-dropdown"
+                            onSelect={(e) => {
+                                setInboundTcpConnEps(e || inboundTcpConnEps);
+                            }}
+                        >
+                            <Dropdown.Item eventKey="3">3 events/sec/conn</Dropdown.Item>
+                            <Dropdown.Item eventKey="33">33 events/sec/conn</Dropdown.Item>
+                            <Dropdown.Item eventKey="100">100 events/sec/conn</Dropdown.Item>
+                        </DropdownButton>
+                    </Col>
                 </Row>
                 <Row>
-                <Col>
+                    <Col sm={12}>
                         <Form.Label>Outbound Data Volume</Form.Label>
                         <RangeSlider
                             data-testid={"outbound"}
@@ -167,6 +183,9 @@ function App() {
                         <Form.Text className="text-muted">per Node</Form.Text>
                     </Col>
                 </Row>
+            </Container>
+            <hr />
+            <Container className={"CalculationOutputs"}>
                 <Row>
                     <Col xs={12} md={5}>
                         <h3>Calculations</h3>
@@ -181,8 +200,8 @@ function App() {
                                     <td>{Math.ceil(ptp)} GB/day</td>
                                 </tr>
                                 <tr>
-                                    <td>Max Inbound Connections per vCPU</td>
-                                    <td>{Math.ceil(defaultConnsPerProcess[cpuType])} connections</td>
+                                    <td>Max Inbound TCP Connections per vCPU</td>
+                                    <td>{Math.ceil(defaultConnsPerProcessByEps[inboundTcpConnEps])} connections</td>
                                 </tr>
                                 <tr>
                                     <td>Required Worker Processes by Thruput</td>
@@ -218,7 +237,7 @@ function App() {
                                 <strong>
                                     Workers: {Math.ceil((requiredWorkerNodes === 1 ? 2 : requiredWorkerNodes))} {vCPU}-vCPUs,{" "}
                                     {Math.ceil(vCPU * 2)} GB RAM {pluralize(Math.ceil(requiredWorkerNodes), 'server')}
-                                </strong>{requiredWorkerNodes === 1 ? <small> <i>(Addtl. worker added for redundency)</i></small> : ""} 
+                                </strong>{requiredWorkerNodes === 1 ? <small> <i>(Addtl. worker added for redundency)</i></small> : ""}
                             </li>
                             <li>Leader: 1 8-vCPUs, 8 GB RAM server</li>
                         </ul>

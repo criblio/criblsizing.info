@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import './App.scss'
-import { ButtonGroup, Container, Col, Dropdown, DropdownButton, Form, Row, Table } from "react-bootstrap";
+import { ButtonGroup, Container, Col, Dropdown, DropdownButton, Form, Row, Table, Accordion } from "react-bootstrap";
 import RangeSlider from "react-bootstrap-range-slider";
 import { getQueryStringValue, setQueryStringValue } from "./utils/queryString";
 import { pluralize } from "./utils/plural";
@@ -29,6 +29,14 @@ function App() {
     const [speed, setSpeed] = useQueryString("cpuspeed", 3.0);
     const [cpuAvailability, setCpuAvailability] = useQueryString("cpuavailable", -2);
 
+    const [useSourcePersistentQueue, setUseSourcePersistentQueue] = useQueryString("usespq", "false")
+    const [sPqDowntimeHrs, setSPqDowntimeHrs] = useQueryString("spqdthrs", 0)
+    const [useSPqCompression, setUseSPqCompression] = useQueryString("spqcompress", "false")
+
+    const [useDestinationPersistentQueue, setUseDestinationPersistentQueue] = useQueryString("usedpq", "false")
+    const [dPqDowntimeHrs, setDPqDowntimeHrs] = useQueryString("dpqdthrs", 0)
+    const [useDPqCompression, setUseDPqCompression] = useQueryString("dpqcompress", "false")
+
     // Defaults/Constants
     const defaultThroughput: { [key: string]: number } = { 'x86_64': 400, 'x86_64_ht': 200, 'arm': 480 }
     const defaultConnsPerProcessByEps: { [key: string]: number } = { '3': 5000, '33': 500, '100': 150 }
@@ -42,6 +50,9 @@ function App() {
 
     const workerProcessesByThruput = (inOut * 1024) / processThruput || 4;
     const workerProcessesByConns = inboundTcpConns / defaultConnsPerProcessByEps[inboundTcpConnEps];
+
+    const sPqDiskGbReq = useSourcePersistentQueue === "true" ? ((Math.max(...[inbound * 1000, 500])) / 24) * sPqDowntimeHrs * (useSPqCompression === "true" ? 0.125 : 1) : 0;
+    const dPqDiskGbReq = useDestinationPersistentQueue === "true" ? ((Math.max(...[outbound * 1000, 500])) / 24) * dPqDowntimeHrs * (useDPqCompression === "true" ? 0.125 : 1) : 0;
 
     // Use which ever method requires more worker processes (thruput vs conns)
     const workerProcesses = Math.max(...[workerProcessesByThruput, workerProcessesByConns]);
@@ -191,6 +202,113 @@ function App() {
                         <Form.Text className="text-muted">per Node</Form.Text>
                     </Col>
                 </Row>
+                <Row>
+                    <Accordion defaultActiveKey={useSourcePersistentQueue === "true" ? "0" : "-1"}>
+                        <Accordion.Item eventKey="0">
+                            <Accordion.Header
+                                onClick={(e) => setUseSourcePersistentQueue(useSourcePersistentQueue === "true" ? "false" : "true")}
+                            >
+                                <Form.Check
+                                    type="switch"
+                                    id="custom-switch"
+                                    checked={useSourcePersistentQueue === "true"}
+                                    onChange={(e) => setUseSourcePersistentQueue(e.target.checked === true ? "true" : "false")}
+                                />Use Source Persistent Queuing
+                            </Accordion.Header>
+                            <Accordion.Body>
+
+                                <Row>
+                                    <Col sm={11}>
+                                        <Form.Label>Connectivity Downtime</Form.Label>
+                                        <RangeSlider
+                                            data-testid={"spqdowntimehrs"}
+                                            value={sPqDowntimeHrs}
+                                            min={0}
+                                            max={168}
+                                            step={(() => {
+                                                switch (sPqDowntimeHrs < 24) {
+                                                    case true: return 1;
+                                                    case false: return 24;
+                                                }
+                                            })()}
+                                            size="sm"
+                                            tooltipLabel={(e) =>
+                                                e < 24 ? `${e} Hour${e !== 1 ? "s" : ''}` : `${e / 24} Days`
+                                            }
+                                            onChange={(e) => {
+                                                setSPqDowntimeHrs(e.target.value === "0" ? 0 : parseInt(e.target.value) || sPqDowntimeHrs);
+                                            }}
+                                        />
+                                    </Col>
+                                    <br />
+                                    <Col sm={1}>
+                                        <Form.Label>PQ Compression</Form.Label>
+                                        <Form.Check
+                                            type="switch"
+                                            id="custom-switch"
+                                            checked={useSPqCompression === "true"}
+                                            onChange={(e) => setUseSPqCompression(e.target.checked === true ? "true" : "false")}
+                                        />
+                                    </Col>
+                                </Row>
+                                <br />
+                            </Accordion.Body>
+                        </Accordion.Item>
+                    </Accordion>
+                </Row>
+                <Row>
+                    <Accordion defaultActiveKey={useDestinationPersistentQueue === "true" ? "0" : "-1"}>
+                        <Accordion.Item eventKey="0">
+                            <Accordion.Header
+                                onClick={(e) => setUseDestinationPersistentQueue(useDestinationPersistentQueue === "true" ? "false" : "true")}
+                            >
+                                <Form.Check
+                                    type="switch"
+                                    id="custom-switch"
+                                    checked={useDestinationPersistentQueue === "true"}
+                                    onChange={(e) => setUseDestinationPersistentQueue(e.target.checked === true ? "true" : "false")}
+                                />Use Destination Persistent Queuing
+                            </Accordion.Header>
+                            <Accordion.Body>
+                                <Row>
+                                    <Col sm={11}>
+                                        <Form.Label>Connectivity Downtime</Form.Label>
+                                        <RangeSlider
+                                            data-testid={"dpqdowntimehrs"}
+                                            value={dPqDowntimeHrs}
+                                            min={0}
+                                            max={168}
+                                            step={(() => {
+                                                switch (dPqDowntimeHrs < 24) {
+                                                    case true: return 1;
+                                                    case false: return 24;
+                                                }
+                                            })()}
+                                            size="sm"
+                                            tooltipLabel={(e) =>
+                                                e < 24 ? `${e} Hour${e !== 1 ? "s" : ''}` : `${e / 24} Days`
+                                            }
+                                            onChange={(e) => {
+                                                setDPqDowntimeHrs(e.target.value === "0" ? 0 : parseInt(e.target.value) || dPqDowntimeHrs);
+                                            }}
+                                        />
+                                    </Col>
+                                    <br />
+                                    <Col sm={1}>
+                                        <Form.Label>PQ Compression</Form.Label>
+                                        <Form.Check
+                                            type="switch"
+                                            id="custom-switch"
+                                            checked={useDPqCompression === "true"}
+                                            onChange={(e) => setUseDPqCompression(e.target.checked === true ? "true" : "false")}
+                                        />
+                                    </Col>
+                                </Row>
+                                <br />
+                            </Accordion.Body>
+                        </Accordion.Item>
+                    </Accordion>
+                </Row>
             </Container>
             <hr />
             <Container className={"CalculationOutputs"}>
@@ -223,6 +341,14 @@ function App() {
                                     <td>Processes per Worker</td>
                                     <td>{`${Math.ceil(processesPerNode)} ${pluralize(Math.ceil(processesPerNode), 'process', 'processes')}`}</td>
                                 </tr>
+                                {useSourcePersistentQueue === "false" ? "" : <tr>
+                                    <td>Source Persistent Queue Disk</td>
+                                    <td><strong>{`${Math.ceil(sPqDiskGbReq)} ${pluralize(Math.ceil(sPqDiskGbReq), 'GB')}`}</strong></td>
+                                </tr>}
+                                {useDestinationPersistentQueue === "false" ? "" : <tr>
+                                    <td>Destination Persistent Queue Disk</td>
+                                    <td><strong>{`${Math.ceil(dPqDiskGbReq)} ${pluralize(Math.ceil(dPqDiskGbReq), 'GB')}`}</strong></td>
+                                </tr>}
                                 <tr>
                                     <td>Required Workers</td>
                                     <td><strong>{`${Math.ceil(requiredWorkerNodes)} ${pluralize(Math.ceil(requiredWorkerNodes), 'worker')}`}</strong></td>
@@ -245,7 +371,7 @@ function App() {
                                 <strong>
                                     Workers: {Math.ceil((requiredWorkerNodes === 1 ? 2 : requiredWorkerNodes))} {vCPU}-vCPUs,{" "}
                                     {Math.ceil(vCPU * 2)} GB RAM {pluralize(Math.ceil(requiredWorkerNodes), 'server')}
-                                </strong>{requiredWorkerNodes === 1 ? <small> <i>(Addtl. worker added for redundency)</i></small> : ""}
+                                    {useSourcePersistentQueue === "true" ? `, ${Math.ceil(sPqDiskGbReq / requiredWorkerNodes)} GB Disk (sPQ)`: ""}{useDestinationPersistentQueue === "true" ? `, ${Math.ceil(dPqDiskGbReq / requiredWorkerNodes)} GB Disk (dPQ)` : ""}                                </strong>{requiredWorkerNodes === 1 ? <small> <i>(Addtl. worker added for redundency)</i></small> : ""}
                             </li>
                             <li>Leader: 1 8-vCPUs, 8 GB RAM server</li>
                         </ul>

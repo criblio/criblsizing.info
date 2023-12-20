@@ -19,6 +19,7 @@ function useQueryString(key: string, initialValue: any) {
 }
 
 function App() {
+    // Input parameters
     const [inbound, setInbound] = useQueryString("in", 0);
     const [inboundTcpConns, setInboundTcpConns] = useQueryString("inconns", 0);
     const [inboundTcpConnEps, setInboundTcpConnEps] = useQueryString("inconneps", '3');
@@ -28,17 +29,21 @@ function App() {
     const [speed, setSpeed] = useQueryString("cpuspeed", 3.0);
     const [cpuAvailability, setCpuAvailability] = useQueryString("cpuavailable", -2);
 
+    // Defaults/Constants
     const defaultThroughput: { [key: string]: number } = { 'x86_64': 400, 'x86_64_ht': 200, 'arm': 480 }
-
-    const labelsTcpConnEps: { [key: string]: string } = { '3': '3 events/sec/conn', '33': '33 events/sec/conn', '100': '100 events/sec/conn' }
     const defaultConnsPerProcessByEps: { [key: string]: number } = { '3': 5000, '33': 500, '100': 150 }
 
-    const ptp = (defaultThroughput[cpuType] * speed) / 3;
+    // Labels
+    const labelsTcpConnEps: { [key: string]: string } = { '3': '3 events/sec/conn', '33': '33 events/sec/conn', '100': '100 events/sec/conn' }
+
+    // Calculations
+    const processThruput = (defaultThroughput[cpuType] * speed) / 3;
     const inOut = outbound + inbound;
 
-    const workerProcessesByThruput = (inOut * 1024) / ptp || 4;
+    const workerProcessesByThruput = (inOut * 1024) / processThruput || 4;
     const workerProcessesByConns = inboundTcpConns / defaultConnsPerProcessByEps[inboundTcpConnEps];
 
+    // Use which ever method requires more worker processes (thruput vs conns)
     const workerProcesses = Math.max(...[workerProcessesByThruput, workerProcessesByConns]);
 
     const processesPerNode =
@@ -51,7 +56,7 @@ function App() {
             ? workerProcesses / processesPerNode
             : 1;
 
-    const envThroughput = (ptp * processesPerNode * requiredWorkerNodes) / 1024;
+    const envThroughput = (processThruput * processesPerNode * requiredWorkerNodes) / 1024;
 
     return (
         <Container className={"Primary"}>
@@ -59,7 +64,7 @@ function App() {
             <p>Sizing is per worker group and for sustained worker loads.</p>
             <Container className={"UserInputs"}>
                 <Row>
-                    <Col sm={6}>
+                    <Col sm={3} md={6}>
                         <Form.Label>Inbound Data Volume</Form.Label>
                         <RangeSlider
                             data-testid={"inbound"}
@@ -76,7 +81,8 @@ function App() {
                             }}
                         />
                     </Col>
-                    <Col sm={4}>
+
+                    <Col sm={2} md={4}>
                         <Form.Label>Inbound TCP Connections</Form.Label>
                         <RangeSlider
                             data-testid={"inbound-tcp-conn"}
@@ -93,8 +99,9 @@ function App() {
                             }}
                         />
                     </Col>
-                    <Col sm={2}>
+                    <Col sm={1} md={2}>
                         <Form.Label>Sustained Volume</Form.Label>
+                        <br />
                         <DropdownButton
                             as={ButtonGroup}
                             title={labelsTcpConnEps[inboundTcpConnEps]}
@@ -198,7 +205,7 @@ function App() {
                                 </tr>
                                 <tr>
                                     <td>Processing Throughput per vCPU</td>
-                                    <td>{Math.ceil(ptp)} GB/day</td>
+                                    <td>{Math.ceil(processThruput)} GB/day</td>
                                 </tr>
                                 <tr>
                                     <td>Max Inbound TCP Connections per vCPU</td>

@@ -314,12 +314,12 @@ function App() {
             <hr />
             {(useSourcePersistentQueue === "true" && inbound === 0) ?
                 <Alert variant={"warning"}>
-                    <PiWarning /> Inbound volume is set to less than 1TB, assuming 500GB/day for source persistent queuing calculations.
+                    <PiWarning /> Inbound volume is set to less than 1 TB/day, assuming 500 GB/day for source persistent queuing calculations.
                 </Alert>
                 : ""}
             {(useDestinationPersistentQueue === "true" && outbound === 0) ?
                 <Alert variant={"warning"}>
-                    <PiWarning /> Outbound volume is set to less than 1TB, assuming 500GB/day for destination persistent queuing calculations.
+                    <PiWarning /> Outbound volume is set to less than 1 TB/day, assuming 500 GB/day for destination persistent queuing calculations.
                 </Alert>
                 : ""}
             <Container className={"CalculationOutputs"}>

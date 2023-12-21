@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import './App.scss'
-import { Alert, ButtonGroup, Container, Col, Dropdown, DropdownButton, Form, Row, Table, Accordion } from "react-bootstrap";
+import { Alert, Container, Col, Form, Row, Table, Accordion } from "react-bootstrap";
 import RangeSlider from "react-bootstrap-range-slider";
 import { getQueryStringValue, setQueryStringValue } from "./utils/queryString";
 import { pluralize } from "./utils/plural";
@@ -114,19 +114,17 @@ function App() {
                     <Col sm={1} md={2}>
                         <Form.Label>Sustained Volume</Form.Label>
                         <br />
-                        <DropdownButton
-                            as={ButtonGroup}
-                            title={labelsTcpConnEps[inboundTcpConnEps]}
-                            id="bg-nested-dropdown"
-                            onSelect={(e) => {
-                                setInboundTcpConnEps(e || inboundTcpConnEps);
+                        <Form.Control
+                            as="select"
+                            defaultValue={inboundTcpConnEps}
+                            onChange={(e) => {
+                                setInboundTcpConnEps(e.target.value || inboundTcpConnEps);
                             }}
-                            variant='outline-secondary'
                         >
-                            <Dropdown.Item eventKey="3">3 events/sec/conn</Dropdown.Item>
-                            <Dropdown.Item eventKey="33">33 events/sec/conn</Dropdown.Item>
-                            <Dropdown.Item eventKey="100">100 events/sec/conn</Dropdown.Item>
-                        </DropdownButton>
+                            <option value={"3"}>{labelsTcpConnEps["3"]}</option>
+                            <option value={"33"}>{labelsTcpConnEps["33"]}</option>
+                            <option value={"100"}>{labelsTcpConnEps["100"]}</option>
+                        </Form.Control>
                     </Col>
                 </Row>
                 <Row>

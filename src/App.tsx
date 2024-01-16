@@ -4,7 +4,7 @@ import { Alert, Container, Col, Form, Row, Table, Accordion } from "react-bootst
 import RangeSlider from "react-bootstrap-range-slider";
 import { getQueryStringValue, setQueryStringValue } from "./utils/queryString";
 import { pluralize } from "./utils/plural";
-import { PiWarning } from "react-icons/pi";
+import { PiInfo, PiWarning } from "react-icons/pi";
 
 function useQueryString(key: string, initialValue: any) {
     const [value, setValue] = useState(getQueryStringValue(key) || initialValue);
@@ -215,8 +215,12 @@ function App() {
                                 />Use Source Persistent Queuing
                             </Accordion.Header>
                             <Accordion.Body>
-
                                 <Row>
+                                    {(useSourcePersistentQueue === "true" && inbound === 0) ?
+                                        <Alert variant={"warning"}>
+                                            <PiWarning /> Inbound volume is set to less than 1 TB/day, assuming 500 GB/day for source persistent queuing calculations.
+                                        </Alert>
+                                        : ""}
                                     <Col sm={11}>
                                         <Form.Label>Connectivity Downtime</Form.Label>
                                         <RangeSlider
@@ -270,6 +274,11 @@ function App() {
                             </Accordion.Header>
                             <Accordion.Body>
                                 <Row>
+                                    {(useDestinationPersistentQueue === "true" && outbound === 0) ?
+                                        <Alert variant={"warning"}>
+                                            <PiWarning /> Outbound volume is set to less than 1 TB/day, assuming 500 GB/day for destination persistent queuing calculations.
+                                        </Alert>
+                                        : ""}
                                     <Col sm={11}>
                                         <Form.Label>Connectivity Downtime</Form.Label>
                                         <RangeSlider
@@ -310,14 +319,9 @@ function App() {
                 </Row>
             </Container>
             <hr />
-            {(useSourcePersistentQueue === "true" && inbound === 0) ?
-                <Alert variant={"warning"}>
-                    <PiWarning /> Inbound volume is set to less than 1 TB/day, assuming 500 GB/day for source persistent queuing calculations.
-                </Alert>
-                : ""}
-            {(useDestinationPersistentQueue === "true" && outbound === 0) ?
-                <Alert variant={"warning"}>
-                    <PiWarning /> Outbound volume is set to less than 1 TB/day, assuming 500 GB/day for destination persistent queuing calculations.
+            {requiredWorkerNodes === 1 ?
+                <Alert variant={"info"}>
+                    <PiInfo /> Only one worker required. Additional worker added for redundancy.
                 </Alert>
                 : ""}
             <Container className={"CalculationOutputs"}>
@@ -352,11 +356,11 @@ function App() {
                                 </tr>
                                 {useSourcePersistentQueue === "false" ? "" : <tr>
                                     <td>Source Persistent Queue Disk</td>
-                                    <td><strong>{`${Math.ceil(sPqDiskGbReq)} ${pluralize(Math.ceil(sPqDiskGbReq), 'GB')}`}</strong></td>
+                                    <td>{`${Math.ceil(sPqDiskGbReq)} ${pluralize(Math.ceil(sPqDiskGbReq), 'GB')}`}</td>
                                 </tr>}
                                 {useDestinationPersistentQueue === "false" ? "" : <tr>
                                     <td>Destination Persistent Queue Disk</td>
-                                    <td><strong>{`${Math.ceil(dPqDiskGbReq)} ${pluralize(Math.ceil(dPqDiskGbReq), 'GB')}`}</strong></td>
+                                    <td>{`${Math.ceil(dPqDiskGbReq)} ${pluralize(Math.ceil(dPqDiskGbReq), 'GB')}`}</td>
                                 </tr>}
                                 <tr>
                                     <td>Required Workers</td>
@@ -383,7 +387,7 @@ function App() {
                                     {useSourcePersistentQueue === "true" ? `, ${Math.ceil(sPqDiskGbReq / requiredWorkerNodes)} GB Disk (sPQ)` : ""}
                                     {useDestinationPersistentQueue === "true" ? `, ${Math.ceil(dPqDiskGbReq / requiredWorkerNodes)} GB Disk (dPQ)` : ""}
                                     {" "}{pluralize(Math.ceil(requiredWorkerNodes), 'server')}
-                                </strong>{requiredWorkerNodes === 1 ? <small> <i>(Addtl. worker added for redundency)</i></small> : ""}
+                                </strong>
                             </li>
                             <li>Leader: 1 8-vCPUs, 8 GB RAM server</li>
                         </ul>

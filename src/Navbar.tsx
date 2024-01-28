@@ -8,7 +8,12 @@ const Header = () => {
             <Container fluid={true}>
                 <Navbar.Brand href={"https://cribl.io"} target={"_blank"} className={"p-0"}><img src={logo} alt="cribl" height={30} /></Navbar.Brand>
                 <Nav>
-                    <Nav.Link className={"ms-auto p-0"} href={"https://docs.cribl.io/stream/scaling/"} target={"_blank"}>
+                    <Nav.Link className={"ms-auto p-0 navBarLink"} href={"https://docs.cribl.io/stream/deploy-reference"} target={"_blank"}>
+                    <Button variant="outline-light" style={{color: "#ff6600", border: "1px solid #ff6600"}}>
+                        Reference Architectures
+                    </Button>
+                    </Nav.Link>
+                    <Nav.Link className={"ms-auto p-0 navBarLink"} href={"https://docs.cribl.io/stream/scaling/"} target={"_blank"}>
                     <Button variant="outline-light" style={{color: "#ff6600", border: "1px solid #ff6600"}}>
                         Documentation
                     </Button>

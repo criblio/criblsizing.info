@@ -43,6 +43,12 @@ $theme-colors: (
   "primary": #00cccc
 );
 
+// Add spacing around Nav Bar Link buttons
+.navBarLink {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
 @import "~react-bootstrap-range-slider/dist/react-bootstrap-range-slider.scss";
 
 .range-slider__wrap {

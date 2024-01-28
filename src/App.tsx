@@ -1,10 +1,17 @@
-import React, { useState, useCallback } from 'react';
-import './App.scss'
-import { Alert, Container, Col, Form, Row, Table, Accordion } from "react-bootstrap";
-import RangeSlider from "react-bootstrap-range-slider";
+import { useState, useCallback } from 'react';
+import { Alert, Container, Col, Form, Row, Table, FormCheck } from "react-bootstrap";
+
+import { MdExposurePlus1 } from "react-icons/md";
+import { PiWarning } from "react-icons/pi";
+import { NumericFormat } from 'react-number-format';
+
+import { PersistentQueueAccordion } from './components/PersistentQueueAccordion';
+import { RangeSliderInput } from "./components/RangeSliderInput";
+
 import { getQueryStringValue, setQueryStringValue } from "./utils/queryString";
 import { pluralize } from "./utils/plural";
-import { PiInfo, PiWarning } from "react-icons/pi";
+
+import './App.scss'
 
 function useQueryString(key: string, initialValue: any) {
     const [value, setValue] = useState(getQueryStringValue(key) || initialValue);
@@ -38,15 +45,21 @@ function App() {
     const [dPqDowntimeHrs, setDPqDowntimeHrs] = useQueryString("dpqdthrs", 0)
     const [useDPqCompression, setUseDPqCompression] = useQueryString("dpqcompress", "false")
 
+    const [useLeaderHa, setUseLeaderHa] = useQueryString("leaderha", false);
+    const [workerRedundancy, setWorkerRedundancy] = useQueryString("stream-worker_redundancy", false);
+    const [processingLoad, setProcessingLoad] = useQueryString("stream-processing_load", "average");
+    const [lookupSize, setLookupSize] = useQueryString("stream-lookup_size", 0);
+
     // Defaults/Constants
     const defaultThroughput: { [key: string]: number } = { 'x86_64': 400, 'x86_64_ht': 200, 'arm': 480 }
     const defaultConnsPerProcessByEps: { [key: string]: number } = { '3': 5000, '33': 500, '100': 150 }
+    const processingLoadModifier: { [key: string]: number } = { 'none': 2.0, 'light': 1.25, 'average': 1.0, 'heavy': 0.6 };
 
     // Labels
     const labelsTcpConnEps: { [key: string]: string } = { '3': '3 events/sec/conn', '33': '33 events/sec/conn', '100': '100 events/sec/conn' }
 
     // Calculations
-    const processThruput = (defaultThroughput[cpuType] * speed) / 3;
+    const processThruput = ((defaultThroughput[cpuType] * speed) / 3) * processingLoadModifier[processingLoad];
     const inOut = outbound + inbound;
 
     const workerProcessesByThruput = (inOut * 1024) / processThruput || 4;
@@ -58,272 +71,235 @@ function App() {
     // Use which ever method requires more worker processes (thruput vs conns)
     const workerProcesses = Math.max(...[workerProcessesByThruput, workerProcessesByConns]);
 
-    const processesPerNode =
-        cpuAvailability < 0
-            ? vCPU + cpuAvailability
-            : cpuAvailability;
+    const processesPerNode = cpuAvailability < 0 ? vCPU + cpuAvailability : cpuAvailability;
+    const requiredWorkerNodes = workerProcesses / processesPerNode >= 1 ? workerProcesses / processesPerNode : 1;
 
-    const requiredWorkerNodes =
-        workerProcesses / processesPerNode >= 1
-            ? workerProcesses / processesPerNode
-            : 1;
+    const sPqDiskGbReqPerWorker = Math.ceil(sPqDiskGbReq / requiredWorkerNodes);
+    const dPqDiskGbReqPerWorker = Math.ceil(dPqDiskGbReq / requiredWorkerNodes);
 
     const envThroughput = (processThruput * processesPerNode * requiredWorkerNodes) / 1024;
+
+    const workerMemory = vCPU * (2 + Math.round((lookupSize * 2.50) / 1000));
 
     return (
         <Container className={"Primary"}>
             <h2>Cribl Stream Sizing Calculator</h2>
             <p>Sizing is per worker group and for sustained worker loads.</p>
             <Container className={"UserInputs"}>
-                <Row>
-                    <Col sm={3} md={6}>
-                        <Form.Label>Inbound Data Volume</Form.Label>
-                        <RangeSlider
-                            data-testid={"inbound"}
-                            value={inbound}
-                            min={0}
-                            max={1000}
-                            step={1}
-                            size="sm"
-                            tooltipLabel={(e) =>
-                                e >= 1 ? `${e} TB/Day` : `Less than 1 TB/Day`
-                            }
-                            onChange={(e) => {
-                                setInbound(e.target.value === "0" ? 0 : parseInt(e.target.value) || inbound);
-                            }}
-                        />
-                    </Col>
-
-                    <Col sm={2} md={4}>
-                        <Form.Label>Inbound TCP Connections</Form.Label>
-                        <RangeSlider
-                            data-testid={"inbound-tcp-conn"}
-                            value={inboundTcpConns}
-                            min={0}
-                            max={300000}
-                            step={300}
-                            size="sm"
-                            tooltipLabel={(e) =>
-                                e >= 1 ? `${e} Connections` : `No Inbound TCP Connections`
-                            }
-                            onChange={(e) => {
-                                setInboundTcpConns(e.target.value === "0" ? 0 : parseInt(e.target.value) || inboundTcpConns);
-                            }}
-                        />
-                    </Col>
-                    <Col sm={1} md={2}>
-                        <Form.Label>Sustained Volume</Form.Label>
-                        <br />
-                        <Form.Control
-                            as="select"
-                            defaultValue={inboundTcpConnEps}
-                            onChange={(e) => {
-                                setInboundTcpConnEps(e.target.value || inboundTcpConnEps);
-                            }}
-                        >
-                            <option value={"3"}>{labelsTcpConnEps["3"]}</option>
-                            <option value={"33"}>{labelsTcpConnEps["33"]}</option>
-                            <option value={"100"}>{labelsTcpConnEps["100"]}</option>
-                        </Form.Control>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col sm={12}>
-                        <Form.Label>Outbound Data Volume</Form.Label>
-                        <RangeSlider
-                            data-testid={"outbound"}
-                            value={outbound}
-                            min={0}
-                            max={1000}
-                            step={1}
-                            size="sm"
-                            tooltipLabel={(e) =>
-                                e >= 1 ? `${e} TB/Day` : `Less than 1 TB/Day`
-                            }
-                            onChange={(e) => {
-                                setOutbound(e.target.value === "0" ? 0 : parseInt(e.target.value) || outbound);
-                            }}
-                        />
-                    </Col>
-                </Row>
-                <Row>
-                    <Col xs={12} md={3}>
-                        <Form.Label>CPU Type</Form.Label>
-
-                        <Form.Control
-                            as="select"
-                            defaultValue={cpuType}
-                            onChange={(e) => setCpuType(e.target.value || cpuType)}
-                        >
-                            <option value={"x86_64_ht"}>x86_64 (Hyperthreaded)</option>
-                            <option>x86_64</option>
-                            <option value={"arm"}>ARM</option>
-                        </Form.Control>
-                    </Col>
-                    <Col xs={12} md={3}>
-                        <Form.Label>Total vCPUs per Worker</Form.Label>
-
-                        <Form.Control
-                            as="select"
-                            defaultValue={vCPU}
-                            onChange={(e) => setvCPU(parseInt(e.target.value) || vCPU)}
-                        >
-                            <option>4</option>
-                            <option>8</option>
-                            <option>16</option>
-                            <option>32</option>
-                            <option>48</option>
-                            <option>64</option>
-                            <option>96</option>
-                        </Form.Control>
-                    </Col>
-                    <Col xs={12} md={3}>
-                        <Form.Label>CPU Speed</Form.Label>
-                        <Form.Control
-                            type="number"
-                            defaultValue={speed}
-                            data-testid={"cpu-speed"}
-                            onChange={(e) => setSpeed(parseFloat(e.target.value) || speed)}
-                            step={0.1}
-                        />
-                        <Form.Text className="text-muted">CPU Speed in GHz</Form.Text>
-                    </Col>
-                    <Col xs={12} md={3}>
-                        <Form.Label><a href={"https://docs.cribl.io/stream/scaling/#scale-up"} target={"_blank"} rel={"noreferrer"}>vCPU Availability</a></Form.Label>
-                        <Form.Control
-                            data-testid={"cpu-availability"}
-                            type="number"
-                            defaultValue={cpuAvailability}
-                            onChange={(e) => setCpuAvailability(parseInt(e.target.value) || cpuAvailability)}
-                            min={-vCPU + 1}
-                            max={vCPU}
-                        />
-                        <Form.Text className="text-muted">per Node</Form.Text>
-                    </Col>
-                </Row>
-                <Row>
-                    <Accordion defaultActiveKey={useSourcePersistentQueue === "true" ? "0" : "-1"}>
-                        <Accordion.Item eventKey="0">
-                            <Accordion.Header
-                                onClick={(e) => setUseSourcePersistentQueue(useSourcePersistentQueue === "true" ? "false" : "true")}
-                            >
-                                <Form.Check
-                                    type="switch"
-                                    id="custom-switch"
-                                    checked={useSourcePersistentQueue === "true"}
-                                    onChange={(e) => setUseSourcePersistentQueue(e.target.checked === true ? "true" : "false")}
-                                />Use Source Persistent Queuing
-                            </Accordion.Header>
-                            <Accordion.Body>
+                <Form>
+                    <Form.Group className='card p-4 bg-light' >
+                        <h4 className="my-1">Data Volume</h4>
+                        <Row className="mt-1">
+                            <Col sm={3} md={6}>
+                                <Form.Group as={Row}>
+                                    <Form.Label>Inbound Data Volume</Form.Label>
+                                    <RangeSliderInput
+                                        min={0}
+                                        max={50}
+                                        step={1}
+                                        value={inbound}
+                                        setValue={setInbound}
+                                        numericValueSuffix={" TB"}
+                                        tooltipLabel={inbound >= 1 ? `${inbound} TB/Day` : `Less than 1 TB/Day`}
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col sm={2} md={4}>
+                                <Form.Group as={Row} >
+                                    <Form.Label>Inbound TCP Connections</Form.Label>
+                                    <RangeSliderInput
+                                        min={0}
+                                        max={300000}
+                                        step={300}
+                                        value={inboundTcpConns}
+                                        setValue={setInboundTcpConns}
+                                        colSizeSm={2}
+                                        colSizeMd={4}
+                                        tooltipLabel={inboundTcpConns >= 1 ? `${inboundTcpConns} Connections` : `No Inbound TCP Connections`}
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col sm={1} md={2}>
+                                <Form.Group as={Row} >
+                                    <Form.Label className='px-1'>Sustained Volume</Form.Label>
+                                    <Form.Control
+                                        as="select"
+                                        defaultValue={inboundTcpConnEps}
+                                        onChange={(e) => {
+                                            setInboundTcpConnEps(e.target.value || inboundTcpConnEps);
+                                        }}
+                                    >
+                                        <option value={"3"}>{labelsTcpConnEps["3"]}</option>
+                                        <option value={"33"}>{labelsTcpConnEps["33"]}</option>
+                                        <option value={"100"}>{labelsTcpConnEps["100"]}</option>
+                                    </Form.Control>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row className="mb-3">
+                            <Col sm={12}>
                                 <Row>
-                                    {(useSourcePersistentQueue === "true" && inbound === 0) ?
-                                        <Alert variant={"warning"}>
-                                            <PiWarning /> Inbound volume is set to less than 1 TB/day, assuming 500 GB/day for source persistent queuing calculations.
-                                        </Alert>
-                                        : ""}
-                                    <Col sm={11}>
-                                        <Form.Label>Connectivity Downtime</Form.Label>
-                                        <RangeSlider
-                                            data-testid={"spqdowntimehrs"}
-                                            value={sPqDowntimeHrs}
-                                            min={0}
-                                            max={168}
-                                            step={(() => {
-                                                switch (sPqDowntimeHrs < 24) {
-                                                    case true: return 1;
-                                                    case false: return 24;
-                                                }
-                                            })()}
-                                            size="sm"
-                                            tooltipLabel={(e) =>
-                                                e < 24 ? `${e} Hour${e !== 1 ? "s" : ''}` : `${e / 24} Days`
-                                            }
-                                            onChange={(e) => {
-                                                setSPqDowntimeHrs(e.target.value === "0" ? 0 : parseInt(e.target.value) || sPqDowntimeHrs);
-                                            }}
-                                        />
-                                    </Col>
-                                    <br />
-                                    <Col sm={1}>
-                                        <Form.Label>PQ Compression</Form.Label>
-                                        <Form.Check
-                                            type="switch"
-                                            id="custom-switch"
-                                            checked={useSPqCompression === "true"}
-                                            onChange={(e) => setUseSPqCompression(e.target.checked === true ? "true" : "false")}
-                                        />
-                                    </Col>
+                                    <Form.Label>Outbound Data Volume</Form.Label>
+                                    <RangeSliderInput
+                                        min={0}
+                                        max={100}
+                                        step={1}
+                                        value={outbound}
+                                        setValue={setOutbound}
+                                        numericValueSuffix={" TB"}
+                                        tooltipLabel={outbound >= 1 ? `${outbound} TB/Day` : `Less than 1 TB/Day`}
+                                    />
                                 </Row>
-                                <br />
-                            </Accordion.Body>
-                        </Accordion.Item>
-                    </Accordion>
-                </Row>
-                <Row>
-                    <Accordion defaultActiveKey={useDestinationPersistentQueue === "true" ? "0" : "-1"}>
-                        <Accordion.Item eventKey="0">
-                            <Accordion.Header
-                                onClick={(e) => setUseDestinationPersistentQueue(useDestinationPersistentQueue === "true" ? "false" : "true")}
-                            >
-                                <Form.Check
-                                    type="switch"
-                                    id="custom-switch"
-                                    checked={useDestinationPersistentQueue === "true"}
-                                    onChange={(e) => setUseDestinationPersistentQueue(e.target.checked === true ? "true" : "false")}
-                                />Use Destination Persistent Queuing
-                            </Accordion.Header>
-                            <Accordion.Body>
-                                <Row>
-                                    {(useDestinationPersistentQueue === "true" && outbound === 0) ?
-                                        <Alert variant={"warning"}>
-                                            <PiWarning /> Outbound volume is set to less than 1 TB/day, assuming 500 GB/day for destination persistent queuing calculations.
-                                        </Alert>
-                                        : ""}
-                                    <Col sm={11}>
-                                        <Form.Label>Connectivity Downtime</Form.Label>
-                                        <RangeSlider
-                                            data-testid={"dpqdowntimehrs"}
-                                            value={dPqDowntimeHrs}
-                                            min={0}
-                                            max={168}
-                                            step={(() => {
-                                                switch (dPqDowntimeHrs < 24) {
-                                                    case true: return 1;
-                                                    case false: return 24;
-                                                }
-                                            })()}
-                                            size="sm"
-                                            tooltipLabel={(e) =>
-                                                e < 24 ? `${e} Hour${e !== 1 ? "s" : ''}` : `${e / 24} Days`
-                                            }
-                                            onChange={(e) => {
-                                                setDPqDowntimeHrs(e.target.value === "0" ? 0 : parseInt(e.target.value) || dPqDowntimeHrs);
-                                            }}
-                                        />
-                                    </Col>
-                                    <br />
-                                    <Col sm={1}>
-                                        <Form.Label>PQ Compression</Form.Label>
-                                        <Form.Check
-                                            type="switch"
-                                            id="custom-switch"
-                                            checked={useDPqCompression === "true"}
-                                            onChange={(e) => setUseDPqCompression(e.target.checked === true ? "true" : "false")}
-                                        />
-                                    </Col>
-                                </Row>
-                                <br />
-                            </Accordion.Body>
-                        </Accordion.Item>
-                    </Accordion>
-                </Row>
+
+                            </Col>
+                        </Row>
+                    </Form.Group>
+                    <Form.Group className='card p-4 my-3 bg-light' >
+                        <h4 className="my-1" >CPU Information</h4>
+                        <Row className="mt-1">
+                            <Col xs={12} md={3}>
+                                <Form.Label>CPU Type</Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    defaultValue={cpuType}
+                                    onChange={(e) => setCpuType(e.target.value || cpuType)}
+                                >
+                                    <option value={"x86_64_ht"}>x86_64 (Hyperthreaded)</option>
+                                    <option>x86_64</option>
+                                    <option value={"arm"}>ARM</option>
+                                </Form.Control>
+                            </Col>
+                            <Col xs={12} md={3}>
+                                <Form.Label>Total vCPUs per Worker</Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    defaultValue={vCPU}
+                                    onChange={(e) => setvCPU(parseInt(e.target.value) || vCPU)}
+                                >
+                                    <option>4</option>
+                                    <option>8</option>
+                                    <option>16</option>
+                                    <option>32</option>
+                                    <option>48</option>
+                                    <option>64</option>
+                                    <option>96</option>
+                                </Form.Control>
+                            </Col>
+                            <Col xs={12} md={3}>
+                                <Form.Label>CPU Speed</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    defaultValue={speed}
+                                    data-testid={"cpu-speed"}
+                                    onChange={(e) => setSpeed(parseFloat(e.target.value) || speed)}
+                                    step={0.1}
+                                />
+                                <Form.Text className="text-muted">CPU Speed in GHz</Form.Text>
+                            </Col>
+                            <Col xs={12} md={3}>
+                                <Form.Label><a href={"https://docs.cribl.io/stream/scaling/#scale-up"} target={"_blank"} rel={"noreferrer"}>vCPU Availability</a></Form.Label>
+                                <Form.Control
+                                    data-testid={"cpu-availability"}
+                                    type="number"
+                                    defaultValue={cpuAvailability}
+                                    onChange={(e) => setCpuAvailability(parseInt(e.target.value) || cpuAvailability)}
+                                    min={-vCPU + 1}
+                                    max={vCPU}
+                                />
+                                <Form.Text className="text-muted">per Node</Form.Text>
+                            </Col>
+                        </Row>
+                    </Form.Group>
+                    <Form.Group className='card p-4 my-3 bg-light'>
+                        <h4 className="my-1">Persistent Queuing</h4>
+                        <Row>
+                            <PersistentQueueAccordion
+                                usePq={useSourcePersistentQueue}
+                                setUsePq={setUseSourcePersistentQueue}
+                                pqType='source'
+                                dataDirection='inbound'
+                                pqDowntimeHrs={sPqDowntimeHrs}
+                                setPqDowntimeHrs={setSPqDowntimeHrs}
+                                usePqCompression={useSPqCompression}
+                                setUsePqCompression={setUseSPqCompression}
+                                volume={inbound}
+                            />
+                        </Row>
+                        <Row>
+                            <PersistentQueueAccordion
+                                usePq={useDestinationPersistentQueue}
+                                setUsePq={setUseDestinationPersistentQueue}
+                                pqType="destination"
+                                dataDirection="outbound"
+                                pqDowntimeHrs={dPqDowntimeHrs}
+                                setPqDowntimeHrs={setDPqDowntimeHrs}
+                                usePqCompression={useDPqCompression}
+                                setUsePqCompression={setUseDPqCompression}
+                                volume={outbound}
+                            />
+                        </Row>
+                    </Form.Group>
+                    <Form.Group className={`card p-4 bg-light`}>
+                        <h4 className='my-1'>Advanced Options</h4>
+                        <Row>
+                            <Col>
+                                <Form.Label className='mt-1'>Resiliency Options</Form.Label>
+                                <FormCheck>
+                                    <FormCheck.Input
+                                        type={'checkbox'}
+                                        checked={useLeaderHa}
+                                        onClick={() => setUseLeaderHa(!useLeaderHa)}
+                                    />
+                                    <FormCheck.Label className='mt-0'>Leader High Availability</FormCheck.Label>
+                                </FormCheck>
+                                <FormCheck>
+                                    <FormCheck.Input
+                                        type={'checkbox'}
+                                        checked={workerRedundancy}
+                                        onClick={() => setWorkerRedundancy(!workerRedundancy)}
+                                    />
+                                    <FormCheck.Label className='mt-0'>Worker Redundancy (<MdExposurePlus1 />)</FormCheck.Label>
+                                </FormCheck>
+                            </Col>
+                        </Row>
+                        <Row className='mt-1'>
+                            <Col xs={12} md={3}>
+                                <Form.Label>Processing Load</Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    defaultValue={processingLoad}
+                                    onChange={(e) => setProcessingLoad(e.target.value || processingLoad)}
+                                >
+                                    <option value={"none"}>No Processing (passthru)</option>
+                                    <option value={"light"}>Light Processing</option>
+                                    <option value={"average"}>Normal Processing</option>
+                                    <option value={"heavy"}>Heavy Processing</option>
+                                </Form.Control>
+                            </Col>
+                            <Col xs={12} md={3}>
+                                <Form.Label>Lookup Table(s) Total Size</Form.Label>
+                                <NumericFormat
+                                    className='form-control'
+                                    value={lookupSize}
+                                    defaultValue={0}
+                                    suffix={" MB"}
+                                    onChange={(e) => {
+                                        setLookupSize(isNaN(parseInt(e.target.value)) ? lookupSize : parseInt(e.target.value))
+                                    }}
+                                    onBlur={(e) => {
+                                        setLookupSize(isNaN(parseInt(e.target.value)) ? 0 : lookupSize)
+                                    }}
+                                />
+                            </Col>
+                        </Row>
+                    </Form.Group>
+                </Form>
             </Container>
             <hr />
-            {requiredWorkerNodes === 1 ?
-                <Alert variant={"info"}>
-                    <PiInfo /> Only one worker required. Additional worker added for redundancy.
-                </Alert>
-                : ""}
+            {processingLoad === "heavy" ? 
+                <Alert variant="danger"><PiWarning /> For complex use cases, please contact Cribl Professional Services.</Alert>
+                : null
+            }
             <Container className={"CalculationOutputs"}>
                 <Row>
                     <Col xs={12} md={5}>
@@ -382,23 +358,27 @@ function App() {
                         <ul>
                             <li style={{ fontSize: 18 }}>
                                 <strong>
-                                    Workers: {Math.ceil((requiredWorkerNodes === 1 ? 2 : requiredWorkerNodes))} {vCPU}-vCPUs,{" "}
-                                    {Math.ceil(vCPU * 2)} GB RAM
-                                    {useSourcePersistentQueue === "true" ? `, ${Math.ceil(sPqDiskGbReq / requiredWorkerNodes)} GB Disk (sPQ)` : ""}
-                                    {useDestinationPersistentQueue === "true" ? `, ${Math.ceil(dPqDiskGbReq / requiredWorkerNodes)} GB Disk (dPQ)` : ""}
-                                    {" "}{pluralize(Math.ceil(requiredWorkerNodes), 'server')}
+                                    Workers: {Math.ceil(requiredWorkerNodes + (workerRedundancy ? 1 : 0))} {vCPU}-vCPUs,{" "}
+                                    {workerMemory} GB RAM
+                                    {useSourcePersistentQueue === "true" ? `, ${sPqDiskGbReqPerWorker} GB Disk (sPQ)` : ""}
+                                    {useDestinationPersistentQueue === "true" ? `, ${dPqDiskGbReqPerWorker} GB Disk (dPQ)` : ""}
+                                    {" "}{pluralize(Math.ceil(requiredWorkerNodes + (workerRedundancy ? 1 : 0)), 'server')}
                                 </strong>
                             </li>
-                            <li>Leader: 1 8-vCPUs, 8 GB RAM server</li>
+                            <li>
+                                Leader: {useLeaderHa ? 2 : 1} 8-vCPUs, 8 GB RAM server
+                                {useLeaderHa ?
+                                    <ul>
+                                        <li>Shared Mount: 100GB NFSv4 Volume (<a href={"https://docs.cribl.io/stream/deploy-add-second-leader/#nfs"} target={"_blank"} rel={"noreferrer"}>Requirements</a>)</li>
+                                        <li>Load Balancer (<a href={"https://docs.cribl.io/stream/deploy-add-second-leader/#loadbalancers"} target={"_blank"} rel={"noreferrer"}>Requirements</a>)</li>
+                                    </ul>
+                                    : ''}
+                            </li>
                         </ul>
                     </Col>
                 </Row>
             </Container>
-            <Container>
-
-            </Container>
         </Container>
-
     );
 }
 

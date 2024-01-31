@@ -5,7 +5,7 @@ import RangeSlider from "react-bootstrap-range-slider";
 import { capitalizeFirstLetter } from "../utils/capitalize";
 
 interface PersistentQueueAccordionProps {
-    usePq: string,
+    usePq: boolean,
     setUsePq: Function,
 
     pqType: string,
@@ -14,28 +14,28 @@ interface PersistentQueueAccordionProps {
     pqDowntimeHrs: number,
     setPqDowntimeHrs: Function,
 
-    usePqCompression: string,
+    usePqCompression: boolean,
     setUsePqCompression: Function,
     volume: number
 }
 
 export class PersistentQueueAccordion extends Component<PersistentQueueAccordionProps, {}> {
     render() {
-        return <Accordion defaultActiveKey={this.props.usePq === "true" ? "0" : "-1"}>
+        return <Accordion defaultActiveKey={this.props.usePq === true ? "0" : "-1"}>
             <Accordion.Item eventKey="0">
                 <Accordion.Header
-                    onClick={(e) => this.props.setUsePq(this.props.usePq === "true" ? "false" : "true")}
+                    onClick={() => this.props.setUsePq(this.props.usePq === true ? false : true)}
                 >
                     <Form.Check
                         type="switch"
                         id={`${this.props.pqType}-enabled-switch`}
-                        checked={this.props.usePq === "true"}
-                        onChange={(e) => this.props.setUsePq(e.target.checked === true ? "true" : "false")}
+                        checked={this.props.usePq === true}
+                        onChange={(e) => this.props.setUsePq(e.target.checked === true ? true : false)}
                     />Use {capitalizeFirstLetter(this.props.pqType)} Persistent Queuing
                 </Accordion.Header>
                 <Accordion.Body>
                     <Row>
-                        {(this.props.usePq === "true" && this.props.volume === 0) ?
+                        {(this.props.usePq === true && this.props.volume === 0) ?
                             <Alert variant={"warning"}>
                                 <PiWarning /> {capitalizeFirstLetter(this.props.dataDirection)} volume is set to less than 1 TB/day, assuming 500 GB/day for destination persistent queuing calculations.
                             </Alert>
@@ -67,8 +67,8 @@ export class PersistentQueueAccordion extends Component<PersistentQueueAccordion
                             <Form.Check
                                 type="switch"
                                 id={`${this.props.pqType}-compression-switch`}
-                                checked={this.props.usePqCompression === "true"}
-                                onChange={(e) => this.props.setUsePqCompression(e.target.checked === true ? "true" : "false")}
+                                checked={this.props.usePqCompression === true}
+                                onChange={(e) => this.props.setUsePqCompression(e.target.checked === true ? true : false)}
                             />
                         </Col>
                     </Row>

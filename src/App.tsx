@@ -8,6 +8,7 @@ import { NumericFormat } from 'react-number-format';
 import { PersistentQueueAccordion } from './components/PersistentQueueAccordion';
 import { RangeSliderInput } from "./components/RangeSliderInput";
 
+import { Calculations } from "./utils/sizingCalculations";
 import { getQueryStringValue, setQueryStringValue } from "./utils/queryString";
 import { pluralize } from "./utils/plural";
 
@@ -27,28 +28,36 @@ function useQueryString(key: string, initialValue: any) {
 }
 
 function App() {
-    // Input parameters
-    const [inbound, setInbound] = useQueryString("in", 0);
-    const [inboundTcpConns, setInboundTcpConns] = useQueryString("inconns", 0);
-    const [inboundTcpConnEps, setInboundTcpConnEps] = useQueryString("inconneps", '3');
-    const [outbound, setOutbound] = useQueryString("out", 0);
-    const [cpuType, setCpuType] = useQueryString('cputype', 'x86_64_ht');
-    const [vCPU, setvCPU] = useQueryString("vcpu", 4);
-    const [speed, setSpeed] = useQueryString("cpuspeed", 3.0);
-    const [cpuAvailability, setCpuAvailability] = useQueryString("cpuavailable", -2);
+    // input parameters
 
-    const [useSourcePersistentQueue, setUseSourcePersistentQueue] = useQueryString("usespq", "false")
-    const [sPqDowntimeHrs, setSPqDowntimeHrs] = useQueryString("spqdthrs", 0)
-    const [useSPqCompression, setUseSPqCompression] = useQueryString("spqcompress", "false")
+    // data volume
+    const [inbound, setInbound] = useQueryString("stream-in_tb", 0);
+    const [inboundTcpConns, setInboundTcpConns] = useQueryString("stream-in_conns", 0);
+    const [inboundTcpConnEps, setInboundTcpConnEps] = useQueryString("stream-in_conn_eps", '3');
+    const [outbound, setOutbound] = useQueryString("stream-out_tb", 0);
 
-    const [useDestinationPersistentQueue, setUseDestinationPersistentQueue] = useQueryString("usedpq", "false")
-    const [dPqDowntimeHrs, setDPqDowntimeHrs] = useQueryString("dpqdthrs", 0)
-    const [useDPqCompression, setUseDPqCompression] = useQueryString("dpqcompress", "false")
+    // cpu information
+    const [cpuType, setCpuType] = useQueryString('stream-cpu_type', 'x86_64_ht');
+    const [vCPU, setvCPU] = useQueryString("stream-vcpu", 4);
+    const [speed, setSpeed] = useQueryString("stream-cpu_speed", 3.0);
+    const [cpuAvailability, setCpuAvailability] = useQueryString("stream-cpu_availability", -2);
 
-    const [useLeaderHa, setUseLeaderHa] = useQueryString("leaderha", false);
+    // source persistent queue
+    const [useSourcePersistentQueue, setUseSourcePersistentQueue] = useQueryString("stream-spq_enabled", false)
+    const [sPqDurationHrs, setSPqDurationHrs] = useQueryString("stream-spq_duration_hrs", 0)
+    const [useSPqCompression, setUseSPqCompression] = useQueryString("stream-spq_compress_enabled", false)
+
+    // destination persistent queue
+    const [useDestinationPersistentQueue, setUseDestinationPersistentQueue] = useQueryString("stream-dpq_enabled", false)
+    const [dPqDurationHrs, setDPqDurationHrs] = useQueryString("stream-dpq_duration_hrs", 0)
+    const [useDPqCompression, setUseDPqCompression] = useQueryString("stream-dpq_compress_enabled", false)
+
+    // advanced options
+    const [useLeaderHa, setUseLeaderHa] = useQueryString("cribl-leader_ha", false);
     const [workerRedundancy, setWorkerRedundancy] = useQueryString("stream-worker_redundancy", false);
+
     const [processingLoad, setProcessingLoad] = useQueryString("stream-processing_load", "average");
-    const [lookupSize, setLookupSize] = useQueryString("stream-lookup_size", 0);
+    const [lookupSize, setLookupSize] = useQueryString("stream-lookup_mb", 0);
 
     // Defaults/Constants
     const defaultThroughput: { [key: string]: number } = { 'x86_64': 400, 'x86_64_ht': 200, 'arm': 480 }
@@ -59,17 +68,18 @@ function App() {
     const labelsTcpConnEps: { [key: string]: string } = { '3': '3 events/sec/conn', '33': '33 events/sec/conn', '100': '100 events/sec/conn' }
 
     // Calculations
-    const processThruput = ((defaultThroughput[cpuType] * speed) / 3) * processingLoadModifier[processingLoad];
-    const inOut = outbound + inbound;
+    const processThruput = Calculations.processThruput(defaultThroughput[cpuType], speed, processingLoadModifier[processingLoad]);
+    const totalThruput = Calculations.totalThruput(inbound, outbound);
 
-    const workerProcessesByThruput = (inOut * 1024) / processThruput || 4;
-    const workerProcessesByConns = inboundTcpConns / defaultConnsPerProcessByEps[inboundTcpConnEps];
+    const workerProcessesByThruput = Calculations.workerProcessCountByThruput(totalThruput, processThruput);
+    const workerProcessesByConns = Calculations.workerProcessCountByConnections(inboundTcpConns, defaultConnsPerProcessByEps[inboundTcpConnEps]);
 
-    const sPqDiskGbReq = useSourcePersistentQueue === "true" ? ((Math.max(...[inbound * 1000, 500])) / 24) * sPqDowntimeHrs * (useSPqCompression === "true" ? 0.125 : 1) : 0;
-    const dPqDiskGbReq = useDestinationPersistentQueue === "true" ? ((Math.max(...[outbound * 1000, 500])) / 24) * dPqDowntimeHrs * (useDPqCompression === "true" ? 0.125 : 1) : 0;
+    const sPqDiskGbReq = useSourcePersistentQueue === true ? Calculations.persistentQueueDisk(inbound, sPqDurationHrs, useSPqCompression, 500) : 0;
+    const dPqDiskGbReq = useDestinationPersistentQueue === true ? Calculations.persistentQueueDisk(outbound, dPqDurationHrs, useDPqCompression, 500) : 0;
 
     // Use which ever method requires more worker processes (thruput vs conns)
     const workerProcesses = Math.max(...[workerProcessesByThruput, workerProcessesByConns]);
+    const workerMemory = vCPU * Calculations.workerProcessMemory(lookupSize)
 
     const processesPerNode = cpuAvailability < 0 ? vCPU + cpuAvailability : cpuAvailability;
     const requiredWorkerNodes = workerProcesses / processesPerNode >= 1 ? workerProcesses / processesPerNode : 1;
@@ -78,8 +88,6 @@ function App() {
     const dPqDiskGbReqPerWorker = Math.ceil(dPqDiskGbReq / requiredWorkerNodes);
 
     const envThroughput = (processThruput * processesPerNode * requiredWorkerNodes) / 1024;
-
-    const workerMemory = vCPU * (2 + Math.round((lookupSize * 2.50) / 1000));
 
     return (
         <Container className={"Primary"}>
@@ -164,7 +172,7 @@ function App() {
                                     defaultValue={cpuType}
                                     onChange={(e) => setCpuType(e.target.value || cpuType)}
                                 >
-                                    <option value={"x86_64_ht"}>x86_64 (Hyperthreaded)</option>
+                                    <option value={"x86_64_ht"}>x86_64 (hyper-threaded)</option>
                                     <option>x86_64</option>
                                     <option value={"arm"}>ARM</option>
                                 </Form.Control>
@@ -190,7 +198,6 @@ function App() {
                                 <Form.Control
                                     type="number"
                                     defaultValue={speed}
-                                    data-testid={"cpu-speed"}
                                     onChange={(e) => setSpeed(parseFloat(e.target.value) || speed)}
                                     step={0.1}
                                 />
@@ -199,7 +206,6 @@ function App() {
                             <Col xs={12} md={3}>
                                 <Form.Label><a href={"https://docs.cribl.io/stream/scaling/#scale-up"} target={"_blank"} rel={"noreferrer"}>vCPU Availability</a></Form.Label>
                                 <Form.Control
-                                    data-testid={"cpu-availability"}
                                     type="number"
                                     defaultValue={cpuAvailability}
                                     onChange={(e) => setCpuAvailability(parseInt(e.target.value) || cpuAvailability)}
@@ -218,8 +224,8 @@ function App() {
                                 setUsePq={setUseSourcePersistentQueue}
                                 pqType='source'
                                 dataDirection='inbound'
-                                pqDowntimeHrs={sPqDowntimeHrs}
-                                setPqDowntimeHrs={setSPqDowntimeHrs}
+                                pqDowntimeHrs={sPqDurationHrs}
+                                setPqDowntimeHrs={setSPqDurationHrs}
                                 usePqCompression={useSPqCompression}
                                 setUsePqCompression={setUseSPqCompression}
                                 volume={inbound}
@@ -231,8 +237,8 @@ function App() {
                                 setUsePq={setUseDestinationPersistentQueue}
                                 pqType="destination"
                                 dataDirection="outbound"
-                                pqDowntimeHrs={dPqDowntimeHrs}
-                                setPqDowntimeHrs={setDPqDowntimeHrs}
+                                pqDowntimeHrs={dPqDurationHrs}
+                                setPqDowntimeHrs={setDPqDurationHrs}
                                 usePqCompression={useDPqCompression}
                                 setUsePqCompression={setUseDPqCompression}
                                 volume={outbound}
@@ -248,7 +254,7 @@ function App() {
                                     <FormCheck.Input
                                         type={'checkbox'}
                                         checked={useLeaderHa}
-                                        onClick={() => setUseLeaderHa(!useLeaderHa)}
+                                        onChange={() => setUseLeaderHa(!useLeaderHa)}
                                     />
                                     <FormCheck.Label className='mt-0'>Leader High Availability</FormCheck.Label>
                                 </FormCheck>
@@ -256,7 +262,7 @@ function App() {
                                     <FormCheck.Input
                                         type={'checkbox'}
                                         checked={workerRedundancy}
-                                        onClick={() => setWorkerRedundancy(!workerRedundancy)}
+                                        onChange={() => setWorkerRedundancy(!workerRedundancy)}
                                     />
                                     <FormCheck.Label className='mt-0'>Worker Redundancy (<MdExposurePlus1 />)</FormCheck.Label>
                                 </FormCheck>
@@ -296,7 +302,7 @@ function App() {
                 </Form>
             </Container>
             <hr />
-            {processingLoad === "heavy" ? 
+            {processingLoad === "heavy" ?
                 <Alert variant="danger"><PiWarning /> For complex use cases, please contact Cribl Professional Services.</Alert>
                 : null
             }
@@ -330,11 +336,11 @@ function App() {
                                     <td>Processes per Worker</td>
                                     <td>{`${Math.ceil(processesPerNode)} ${pluralize(Math.ceil(processesPerNode), 'process', 'processes')}`}</td>
                                 </tr>
-                                {useSourcePersistentQueue === "false" ? "" : <tr>
+                                {useSourcePersistentQueue === false ? null : <tr>
                                     <td>Source Persistent Queue Disk</td>
                                     <td>{`${Math.ceil(sPqDiskGbReq)} ${pluralize(Math.ceil(sPqDiskGbReq), 'GB')}`}</td>
                                 </tr>}
-                                {useDestinationPersistentQueue === "false" ? "" : <tr>
+                                {useDestinationPersistentQueue === false ? null : <tr>
                                     <td>Destination Persistent Queue Disk</td>
                                     <td>{`${Math.ceil(dPqDiskGbReq)} ${pluralize(Math.ceil(dPqDiskGbReq), 'GB')}`}</td>
                                 </tr>}
@@ -360,8 +366,8 @@ function App() {
                                 <strong>
                                     Workers: {Math.ceil(requiredWorkerNodes + (workerRedundancy ? 1 : 0))} {vCPU}-vCPUs,{" "}
                                     {workerMemory} GB RAM
-                                    {useSourcePersistentQueue === "true" ? `, ${sPqDiskGbReqPerWorker} GB Disk (sPQ)` : ""}
-                                    {useDestinationPersistentQueue === "true" ? `, ${dPqDiskGbReqPerWorker} GB Disk (dPQ)` : ""}
+                                    {useSourcePersistentQueue === true ? `, ${sPqDiskGbReqPerWorker} GB Disk (sPQ)` : null}
+                                    {useDestinationPersistentQueue === true ? `, ${dPqDiskGbReqPerWorker} GB Disk (dPQ)` : null}
                                     {" "}{pluralize(Math.ceil(requiredWorkerNodes + (workerRedundancy ? 1 : 0)), 'server')}
                                 </strong>
                             </li>
@@ -372,7 +378,7 @@ function App() {
                                         <li>Shared Mount: 100GB NFSv4 Volume (<a href={"https://docs.cribl.io/stream/deploy-add-second-leader/#nfs"} target={"_blank"} rel={"noreferrer"}>Requirements</a>)</li>
                                         <li>Load Balancer (<a href={"https://docs.cribl.io/stream/deploy-add-second-leader/#loadbalancers"} target={"_blank"} rel={"noreferrer"}>Requirements</a>)</li>
                                     </ul>
-                                    : ''}
+                                    : null}
                             </li>
                         </ul>
                     </Col>

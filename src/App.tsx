@@ -53,7 +53,7 @@ function App() {
     const [useDPqCompression, setUseDPqCompression] = useQueryString("stream-dpq_compress_enabled", false)
 
     // advanced options
-    const [useLeaderHa, setUseLeaderHa] = useQueryString("cribl-leader_ha", false);
+    const [useLeaderHa, setUseLeaderHa] = useQueryString("cribl-leader_ha", true);
     const [workerRedundancy, setWorkerRedundancy] = useQueryString("stream-worker_redundancy", false);
 
     const [processingLoad, setProcessingLoad] = useQueryString("stream-processing_load", "average");

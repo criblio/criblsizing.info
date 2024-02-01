@@ -54,7 +54,7 @@ export function persistentQueueDisk(volume: number, durationHours: number, compr
 }
 
 /**
- * 
+ * calculate the required memory per worker process
  * @param lookupSize total size of lookup files in mb
  * @param baseMemory memory required in gb for worker processes without other factors
  * @returns required memory for each worker process in gb

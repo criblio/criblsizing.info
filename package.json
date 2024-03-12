@@ -1,9 +1,9 @@
 {
-  "name": "criblsizing.info",
+  "name": "criblsizing",
   "version": "0.1.0",
   "description": "Cribl Stream Sizing Calculator",
-  "repository": "git@github.com:/bdalpe/criblsizing.info.git",
-  "author": "Brendan Dalpe <bdalpe@gmail.com>",
+  "repository": "git@github.com:SShah7433/criblsizing.git",
+  "author": "Sidd Shah <sidd@cribl.io>",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -17,6 +17,8 @@
     "react-bootstrap": "^2.10.0",
     "react-bootstrap-range-slider": "^3.0.8",
     "react-dom": "^18.2.0",
+    "react-icons": "^4.12.0",
+    "react-number-format": "^5.3.1",
     "ts-node": "^10.9.2"
   },
   "resolutions": {

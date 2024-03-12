@@ -2,19 +2,19 @@
 import qs from "query-string";
 
 const setQueryStringWithoutPageReload = (qsValue: string) => {
-    const newurl = window.location.protocol + "//" +
-                   window.location.host +
-                   window.location.pathname +
-                   qsValue;
+    const newUrl = window.location.protocol + "//" +
+        window.location.host +
+        window.location.pathname +
+        qsValue;
 
     // Replace state keeps browser history clean
-    window.history.replaceState({ path: newurl }, "", newurl);
+    window.history.replaceState({ path: newUrl }, "", newUrl);
 };
 
 export const setQueryStringValue = (
-   key: string,
-   value: string,
-   queryString: string = window.location.search
+    key: string,
+    value: string,
+    queryString: string = window.location.search
 ) => {
     const values = qs.parse(queryString);
     const newQsValue = qs.stringify({ ...values, [key]: value });
@@ -26,6 +26,13 @@ export const getQueryStringValue = (
     queryString: string = window.location.search
 ) => {
     const values = qs.parse(queryString);
+
+    // Handle boolean values
+    if (values[key] === 'true') {
+        return true
+    } else if (values[key] === 'false') {
+        return false
+    }
 
     // If the value is a number, parse and return it
     if (!isNaN(Number(values[key]))) {

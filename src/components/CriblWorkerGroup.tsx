@@ -8,21 +8,23 @@ import { QueuingAccordion } from "@/components/QueuingAccordion";
 import { useEffect, useState } from "react";
 import { Calculations, totalThruput } from "@/utils/sizingCalculations";
 import { CriblWorkerGroupAdvOptions } from "./CriblWorkerGroupAdvOptions";
-import { serializeWorkerGroup } from "@/utils/serializeWorkerGroup";
+import { serializeWorkerGroup, WorkerGroupConfig } from "@/utils/serializeWorkerGroup";
 
 type CriblWorkerGroupProps = {
     name: string
 
-    workerGroupConfigs: { name: string, value: string }[]
-    setStringRepr: React.Dispatch<React.SetStateAction<{ name: string, value: string }[]>>
+    workerGroupConfigs: Map<string, string>
+    setWorkerGroupConfigs: React.Dispatch<React.SetStateAction<Map<string, string>>>
 }
 
 export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
     name: string
 
-    workerGroupConfigs: { name: string, value: string }[]
-    setStringRepr: React.Dispatch<React.SetStateAction<{ name: string, value: string }[]>>
+    workerGroupConfigs: Map<string, string>
+    setWorkerGroupConfigs: React.Dispatch<React.SetStateAction<Map<string, string>>>
 }) => {
+
+    const [inLoading, setInLoading] = useState<boolean>(false);
 
     const optionsInboundSustainedVolume = [
         { key: "3epsc", label: "3 events/sec/conn", value: 5000 },
@@ -90,11 +92,12 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
 
     // Save whenever something changes
     useEffect(() => {
-        var existingConfigIdx = props.workerGroupConfigs.findIndex((x) => x.name === props.name)
-        var existingConfig = props.workerGroupConfigs;
-        if (existingConfigIdx) {
+        if (!props.workerGroupConfigs || inLoading) {
+            return
+        }
+        var existingConfig = props.workerGroupConfigs.get(props.name);
+        if (!existingConfig) {
             var updatedSection = {
-                name: props.name,
                 value: serializeWorkerGroup(
                             dataVolumeIn, connectionVolumeIn, sustainedVolumeIn,
                             dataVolumeOut, cpuType, cpuSpeed, cpuCount, cpuAvailability,
@@ -105,25 +108,57 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                         )
 
             }
-            existingConfig[existingConfigIdx] = updatedSection
+            props.setWorkerGroupConfigs(new Map(props.workerGroupConfigs.set(props.name, JSON.stringify(updatedSection))))
         } else {
-            existingConfig.push({
-                name: props.name,
-                value: serializeWorkerGroup(
-                            dataVolumeIn, connectionVolumeIn, sustainedVolumeIn,
-                            dataVolumeOut, cpuType, cpuSpeed, cpuCount, cpuAvailability,
-                            enableSPq, durationSPq, enableSPqCompression,
-                            enableDPq, durationDPq, enableDPqCompression,
-                            workerRedundancy, tcpLoadBalancing,
-                            processingLoad, lookupTableSize
-                        )
-
-            })
+            props.setWorkerGroupConfigs(new Map(props.workerGroupConfigs.set(props.name, serializeWorkerGroup(
+                dataVolumeIn, connectionVolumeIn, sustainedVolumeIn,
+                dataVolumeOut, cpuType, cpuSpeed, cpuCount, cpuAvailability,
+                enableSPq, durationSPq, enableSPqCompression,
+                enableDPq, durationDPq, enableDPqCompression,
+                workerRedundancy, tcpLoadBalancing,
+                processingLoad, lookupTableSize
+            ))))
         }
+    }, [dataVolumeIn, connectionVolumeIn, sustainedVolumeIn,
+        dataVolumeOut, cpuType, cpuSpeed, cpuCount, cpuAvailability,
+        enableSPq, durationSPq, enableSPqCompression,
+        enableDPq, durationDPq, enableDPqCompression,
+        workerRedundancy, tcpLoadBalancing,
+        processingLoad, lookupTableSize]);
 
-        props.setStringRepr(existingConfig)
-
-    });
+    // Load when config changed from outside
+    useEffect(() => {
+        setInLoading(true)
+        const newConfigString = props.workerGroupConfigs.get(props.name);
+        if (newConfigString) {
+            const newConfig: WorkerGroupConfig = JSON.parse(newConfigString)['config']
+            if (newConfig) {
+                setDataVolumeIn(newConfig.data_volume.in)
+                setConnectionVolumeIn(newConfig.data_volume.inconn)
+                setSustainedVolumeIn(newConfig.data_volume.inconnvol)
+                setDataVolumeOut(newConfig.data_volume.out)
+    
+                setCpuType(newConfig.cpu_info.type)
+                setCpuSpeed(newConfig.cpu_info.speed)
+                setCpuCount(newConfig.cpu_info.count)
+                setCpuAvailability(newConfig.cpu_info.availability)
+    
+                setEnableSPq(newConfig.queuing.source.enable)
+                setDurationSPq(newConfig.queuing.source.duration)
+                setEnableSPqCompression(newConfig.queuing.source.compression)
+    
+                setEnableDPq(newConfig.queuing.destination.enable)
+                setDurationDPq(newConfig.queuing.destination.duration)
+                setEnableDPqCompression(newConfig.queuing.destination.compression)
+    
+                setWorkerRedundency(newConfig.advanced.workerredundancy)
+                setTcpLoadBalancing(newConfig.advanced.tcploadbalance)
+                setProcessingLoad(newConfig.advanced.processload)
+                setLookupTableSize(newConfig.advanced.lookupsize)
+            }
+        }
+        setInLoading(false)
+    }, [props.workerGroupConfigs])
 
     return (
         <>

@@ -53,6 +53,7 @@ export const QueuingAccordion: React.FC<QueuingAccordionProps> = (props: {
                                 maxValue={24 * 7}
                                 step={props.durationSPq < 24 ? 1 : 24}
                                 onChange={(e) => props.setDurationSPq(Number(e))}
+                                value={props.durationSPq}
                                 getValue={(hours) => Number(hours) < 24 ? `${hours} hours` : `${Number(hours) / 24} days`}
                             />
                         </div>
@@ -82,6 +83,7 @@ export const QueuingAccordion: React.FC<QueuingAccordionProps> = (props: {
                                 maxValue={24 * 7}
                                 step={props.durationDPq < 24 ? 1 : 24}
                                 onChange={(e) => props.setDurationDPq(Number(e))}
+                                value={props.durationDPq}
                                 getValue={(hours) => Number(hours) < 24 ? `${hours} hours` : `${Number(hours) / 24} days`}
                             />
                         </div>

@@ -1,4 +1,38 @@
 
+export interface WorkerGroupConfig {
+    data_volume: {
+        in: number,
+        inconn: number,
+        inconnvol: string,
+        out: number
+    },
+    cpu_info: {
+        type: string,
+        speed: number,
+        count: number,
+        availability: number
+    },
+    queuing: {
+        source: {
+            enable: boolean,
+            duration: number,
+            compression: boolean
+        },
+        destination: {
+            enable: boolean,
+            duration: number,
+            compression: boolean
+        }
+    },
+    advanced: {
+        workerredundancy: boolean,
+        tcploadbalance: boolean,
+        processload: string,
+        lookupsize: number
+    }
+}
+
+
 export function serializeWorkerGroup(
 
     dataVolumeIn: number,

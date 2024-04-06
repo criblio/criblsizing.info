@@ -1,6 +1,6 @@
 'use client'
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Input } from "@nextui-org/input";
 import { Slider, SliderValue } from "@nextui-org/slider";
 import { Tooltip } from "@nextui-org/tooltip";
@@ -27,7 +27,7 @@ export const InputSliderTextBox: React.FC<InputSliderTextBoxProps> = (props: {
     setValue: React.Dispatch<React.SetStateAction<number>>
 }) => {
 
-    const [value, setValue] = React.useState<SliderValue>(0);
+    // const [value, setValue] = React.useState<SliderValue>(0);
     const [inputValue, setInputValue] = React.useState<string>("0");
 
     const tooltipText = props.tooltipText;
@@ -38,11 +38,13 @@ export const InputSliderTextBox: React.FC<InputSliderTextBoxProps> = (props: {
     const handleChange = (value: SliderValue) => {
         if (isNaN(Number(value))) return;
 
-        setValue(value);
         setInputValue(value.toString());
         props.setValue(Number(value))
     };
 
+    useEffect(() => {
+        setInputValue(props.value.toString())
+    }, [props.value])
 
     return (
         <Slider
@@ -81,14 +83,14 @@ export const InputSliderTextBox: React.FC<InputSliderTextBoxProps> = (props: {
                             }}
                             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                                 if (e.key === "Enter" && !isNaN(Number(inputValue))) {
-                                    setValue(Number(inputValue));
+                                    props.setValue(Number(inputValue));
                                 }
                             }}
                         />
                     </Tooltip>
                 </output>
             )}
-            value={value}
+            value={props.value}
             onChange={handleChange}
         />
     )

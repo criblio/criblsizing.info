@@ -6,12 +6,14 @@ import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, Navba
 import criblLogo from "../../public/Cribl-Logo-2C-White.svg"
 import { useState } from "react";
 
-type NavBarProps = {
+type ActiveTab = "stream" | "search";
 
+type NavBarProps = {
+    activeTab: ActiveTab
 }
 
 export const NavBar: React.FC<NavBarProps> = (props: {
-
+    activeTab: ActiveTab
 }) => {
 
     return (
@@ -19,13 +21,18 @@ export const NavBar: React.FC<NavBarProps> = (props: {
             <NavbarBrand>
                 <Image src={criblLogo} alt="cribl logo" height={64} />
             </NavbarBrand>
-            {/* <NavbarContent className="hidden sm:flex gap-4" justify="center">
-                <NavbarItem isActive className="text-secondary">
-                    <Link href="#" aria-current="page" className="text-cribl_teal">
+            <NavbarContent className="hidden sm:flex gap-4" justify="center">
+                <NavbarItem isActive={props.activeTab === 'stream' ? true : false} className="text-secondary">
+                    <Link href="/stream" aria-current="page" className={props.activeTab === 'stream' ? "text-cribl_teal" : "text-white"}>
                         Stream
                     </Link>
                 </NavbarItem>
-            </NavbarContent> */}
+                <NavbarItem isActive={props.activeTab === 'search' ? true : false} className="text-secondary">
+                    <Link href="/search" aria-current="page" className={props.activeTab === 'search' ? "text-cribl_teal" : "text-white"}>
+                        Search
+                    </Link>
+                </NavbarItem>
+            </NavbarContent>
             <NavbarContent justify="end">
                 <NavbarItem className="hidden lg:flex">
                     <Button as={Link} color="secondary" href="#" variant="solid" radius="full" className="text-black font-medium" >

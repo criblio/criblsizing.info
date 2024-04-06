@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="cribl">
+    <html lang="en" className="cribl" style={{scrollbarGutter: "stable"}}>
       <body className={inter.className}>
         <Providers>
           {children}

@@ -5,10 +5,11 @@ import { InputSelect } from "@/components/InputSelect";
 import { InputSliderTextBox } from "@/components/InputSliderTextBox";
 import { InputNumber } from "@/components/InputNumber";
 import { QueuingAccordion } from "@/components/QueuingAccordion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Calculations, totalThruput } from "@/utils/sizingCalculations";
-import { CriblWorkerGroupAdvOptions } from "./CriblWorkerGroupAdvOptions";
-import { serializeWorkerGroup, WorkerGroupConfig } from "@/utils/serializeWorkerGroup";
+import { CriblWorkerGroupAdvOptions } from "@/components/stream/CriblWorkerGroupAdvOptions";
+
+import { parseAsBoolean, parseAsFloat, parseAsInteger, parseAsString, useQueryState } from 'nuqs'
 
 type CriblWorkerGroupProps = {
     name: string
@@ -23,8 +24,6 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
     workerGroupConfigs: Map<string, string>
     setWorkerGroupConfigs: React.Dispatch<React.SetStateAction<Map<string, string>>>
 }) => {
-
-    const [inLoading, setInLoading] = useState<boolean>(false);
 
     const optionsInboundSustainedVolume = [
         { key: "3epsc", label: "3 events/sec/conn", value: 5000 },
@@ -43,29 +42,29 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
         { key: "heavy", label: "Heavy Processing", value: 0.6 }
     ];
 
-    const [dataVolumeIn, setDataVolumeIn] = useState<number>(0);
-    const [connectionVolumeIn, setConnectionVolumeIn] = useState<number>(0);
-    const [sustainedVolumeIn, setSustainedVolumeIn] = useState<string>("3epsc");
-    const [dataVolumeOut, setDataVolumeOut] = useState<number>(0);
+    const [dataVolumeIn, setDataVolumeIn] = useQueryState("stream-in_tb", parseAsInteger.withDefault(0));
+    const [connectionVolumeIn, setConnectionVolumeIn] = useQueryState("stream-in_conns", parseAsInteger.withDefault(0));
+    const [sustainedVolumeIn, setSustainedVolumeIn] = useQueryState("stream-in_conn_eps", parseAsString.withDefault("3epsc"));
+    const [dataVolumeOut, setDataVolumeOut] = useQueryState("stream-out_tb", parseAsInteger.withDefault(0));
 
-    const [cpuType, setCpuType] = useState<string>("x86-64ht");
-    const [cpuCount, setCpuCount] = useState<number>(4);
-    const [cpuSpeed, setCpuSpeed] = useState<number>(3.0);
-    const [cpuAvailability, setCpuAvailability] = useState<number>(-2);
+    const [cpuType, setCpuType] = useQueryState("stream-cpu_type", parseAsString.withDefault("x86-64ht"));
+    const [cpuCount, setCpuCount] = useQueryState("stream-cpu_count", parseAsInteger.withDefault(0));
+    const [cpuSpeed, setCpuSpeed] = useQueryState("stream-cpu_speed", parseAsFloat.withDefault(3.0));
+    const [cpuAvailability, setCpuAvailability] = useQueryState("stream-cpu_availability", parseAsInteger.withDefault(-2));
 
-    const [enableSPq, setEnableSPq] = useState<boolean>(false);
-    const [durationSPq, setDurationSPq] = useState<number>(0);
-    const [enableSPqCompression, setEnableSPqCompression] = useState<boolean>(false);
+    const [enableSPq, setEnableSPq] = useQueryState("stream-spq_enabled", parseAsBoolean.withDefault(false));
+    const [durationSPq, setDurationSPq] = useQueryState("stream-spq_duration_hrs", parseAsInteger.withDefault(0));
+    const [enableSPqCompression, setEnableSPqCompression] = useQueryState("stream-spq_compress_enabled", parseAsBoolean.withDefault(false));
 
-    const [enableDPq, setEnableDPq] = useState<boolean>(false);
-    const [durationDPq, setDurationDPq] = useState<number>(0);
-    const [enableDPqCompression, setEnableDPqCompression] = useState<boolean>(false);
+    const [enableDPq, setEnableDPq] = useQueryState("stream-dpq_enabled", parseAsBoolean.withDefault(false));
+    const [durationDPq, setDurationDPq] = useQueryState("stream-dpq_duration_hrs", parseAsInteger.withDefault(0));
+    const [enableDPqCompression, setEnableDPqCompression] = useQueryState("stream-dpq_compress_enabled", parseAsBoolean.withDefault(false));
 
-    const [workerRedundancy, setWorkerRedundency] = useState<boolean>(true);
-    const [tcpLoadBalancing, setTcpLoadBalancing] = useState<boolean>(false);
+    const [workerRedundancy, setWorkerRedundency] = useQueryState("stream-worker_redundency", parseAsBoolean.withDefault(true));
+    const [tcpLoadBalancing, setTcpLoadBalancing] = useQueryState("stream-tcp_loadbalancing", parseAsBoolean.withDefault(false));
 
-    const [processingLoad, setProcessingLoad] = useState<string>("normal");
-    const [lookupTableSize, setLookupTableSize] = useState<number>(0);
+    const [processingLoad, setProcessingLoad] = useQueryState("stream-processing_load", parseAsString.withDefault("normal"));
+    const [lookupTableSize, setLookupTableSize] = useQueryState("stream-lookup_mb", parseAsInteger.withDefault(0));
 
     const workerGroupThruput = Calculations.totalThruput(dataVolumeIn, dataVolumeOut);
     const processThruput = Calculations.processThruput(
@@ -90,76 +89,6 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
     const sPqDiskGbReqPerWorker = Math.ceil(sPqDiskGbReq / requiredWorkerNodes);
     const dPqDiskGbReqPerWorker = Math.ceil(dPqDiskGbReq / requiredWorkerNodes);
 
-    // Save whenever something changes
-    useEffect(() => {
-        if (!props.workerGroupConfigs || inLoading) {
-            return
-        }
-        var existingConfig = props.workerGroupConfigs.get(props.name);
-        if (!existingConfig) {
-            var updatedSection = {
-                value: serializeWorkerGroup(
-                            dataVolumeIn, connectionVolumeIn, sustainedVolumeIn,
-                            dataVolumeOut, cpuType, cpuSpeed, cpuCount, cpuAvailability,
-                            enableSPq, durationSPq, enableSPqCompression,
-                            enableDPq, durationDPq, enableDPqCompression,
-                            workerRedundancy, tcpLoadBalancing,
-                            processingLoad, lookupTableSize
-                        )
-
-            }
-            props.setWorkerGroupConfigs(new Map(props.workerGroupConfigs.set(props.name, JSON.stringify(updatedSection))))
-        } else {
-            props.setWorkerGroupConfigs(new Map(props.workerGroupConfigs.set(props.name, serializeWorkerGroup(
-                dataVolumeIn, connectionVolumeIn, sustainedVolumeIn,
-                dataVolumeOut, cpuType, cpuSpeed, cpuCount, cpuAvailability,
-                enableSPq, durationSPq, enableSPqCompression,
-                enableDPq, durationDPq, enableDPqCompression,
-                workerRedundancy, tcpLoadBalancing,
-                processingLoad, lookupTableSize
-            ))))
-        }
-    }, [dataVolumeIn, connectionVolumeIn, sustainedVolumeIn,
-        dataVolumeOut, cpuType, cpuSpeed, cpuCount, cpuAvailability,
-        enableSPq, durationSPq, enableSPqCompression,
-        enableDPq, durationDPq, enableDPqCompression,
-        workerRedundancy, tcpLoadBalancing,
-        processingLoad, lookupTableSize]);
-
-    // Load when config changed from outside
-    useEffect(() => {
-        setInLoading(true)
-        const newConfigString = props.workerGroupConfigs.get(props.name);
-        if (newConfigString) {
-            const newConfig: WorkerGroupConfig = JSON.parse(newConfigString)['config']
-            if (newConfig) {
-                setDataVolumeIn(newConfig.data_volume.in)
-                setConnectionVolumeIn(newConfig.data_volume.inconn)
-                setSustainedVolumeIn(newConfig.data_volume.inconnvol)
-                setDataVolumeOut(newConfig.data_volume.out)
-    
-                setCpuType(newConfig.cpu_info.type)
-                setCpuSpeed(newConfig.cpu_info.speed)
-                setCpuCount(newConfig.cpu_info.count)
-                setCpuAvailability(newConfig.cpu_info.availability)
-    
-                setEnableSPq(newConfig.queuing.source.enable)
-                setDurationSPq(newConfig.queuing.source.duration)
-                setEnableSPqCompression(newConfig.queuing.source.compression)
-    
-                setEnableDPq(newConfig.queuing.destination.enable)
-                setDurationDPq(newConfig.queuing.destination.duration)
-                setEnableDPqCompression(newConfig.queuing.destination.compression)
-    
-                setWorkerRedundency(newConfig.advanced.workerredundancy)
-                setTcpLoadBalancing(newConfig.advanced.tcploadbalance)
-                setProcessingLoad(newConfig.advanced.processload)
-                setLookupTableSize(newConfig.advanced.lookupsize)
-            }
-        }
-        setInLoading(false)
-    }, [props.workerGroupConfigs])
-
     return (
         <>
             <div className="bg-white">
@@ -171,7 +100,7 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                     </div>
                     <div className="grid grid-cols-4 gap-4 py-4">
                         <div className="col-span-2">
-                            <InputSliderTextBox label="Inbound Data Volume" tooltipText="TB/day" minValue={0} maxValue={50} step={1} value={dataVolumeIn} setValue={setDataVolumeIn} />
+                            <InputSliderTextBox label="Inbound Data Volume" tooltipText="TB/day" minValue={0} maxValue={50} step={0.5} value={dataVolumeIn} setValue={setDataVolumeIn} />
                         </div>
                         <div className="col-span-2">
                             <InputSliderTextBox label="Inbound TCP Connections" tooltipText="connections" minValue={0} maxValue={300000} step={300} value={connectionVolumeIn} setValue={setConnectionVolumeIn} />
@@ -201,7 +130,7 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                             <InputNumber
                                 label="CPU Speed (GHz)"
                                 defaultValue={3.0}
-                                minValue={0}
+                                minValue={0.1}
                                 maxValue={16}
                                 step={0.1}
                                 value={cpuSpeed}
@@ -285,7 +214,7 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                             </TableRow>
                             <TableRow key="processingThruputPerVcpu">
                                 <TableCell>Processing Thruput per vCPU</TableCell>
-                                <TableCell>{`${processThruput} GB/day`}</TableCell>
+                                <TableCell>{`${Math.round(processThruput)} GB/day`}</TableCell>
                             </TableRow>
                             <TableRow key="maxInboundTcpConnectionsPerVcpu">
                                 <TableCell>Max Inbound TCP Connections per vCPU</TableCell>
@@ -293,11 +222,11 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                             </TableRow>
                             <TableRow key="requiredWorkerProcessesByThruput">
                                 <TableCell>Required Worker Processes by Thruput</TableCell>
-                                <TableCell>{`${workerProcessCountByThruput} processes`}</TableCell>
+                                <TableCell>{`${Math.round(workerProcessCountByThruput)} processes`}</TableCell>
                             </TableRow>
                             <TableRow key="requiredWorkerProcessesByInboundConns">
                                 <TableCell>Required Worker Processes by Inbound Conns</TableCell>
-                                <TableCell>{`${workerProcessCountByConnections} processes`}</TableCell>
+                                <TableCell>{`${Math.ceil(workerProcessCountByConnections)} processes`}</TableCell>
                             </TableRow>
                             <TableRow key="processesPerWorker">
                                 <TableCell>Processes per Worker</TableCell>
@@ -313,7 +242,7 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                             </TableRow>
                             <TableRow key="requiredWorkers">
                                 <TableCell>Required Workers</TableCell>
-                                <TableCell className="font-bold">{`${requiredWorkerNodes} worker(s)`}</TableCell>
+                                <TableCell className="font-bold">{`${Math.ceil(requiredWorkerNodes)} worker(s)`}</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
@@ -328,7 +257,7 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                             <li style={{ fontSize: 18 }}>
                                 <strong>
                                     Workers: {Math.ceil(requiredWorkerNodes + (workerRedundancy ? 1 : 0))} {cpuCount}-vCPUs,{" "}
-                                    {workerMemory} GB RAM
+                                    {Math.ceil(workerMemory)} GB RAM
                                     {enableSPq === true ? `, ${sPqDiskGbReqPerWorker} GB Disk (sPQ)` : null}
                                     {enableDPq === true ? `, ${dPqDiskGbReqPerWorker} GB Disk (dPQ)` : null}
                                     {" server(s) "}

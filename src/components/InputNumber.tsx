@@ -39,7 +39,7 @@ export const InputNumber: React.FC<InputNumberProps> = (props: {
             min={props.minValue}
             max={props.maxValue}
             step={props.step}
-            value={props.value.toString()}
+            value={props.value?.toString()}
             onChange={(e) => props.setValue(Number(e.target.value))}
             endContent={props.endContent ? props.endContent : <></>}
         />

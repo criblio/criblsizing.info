@@ -1,14 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/stream",
-        permanent: true,
-      }
-    ];
-  },
+  output: "export"
 };
 
 export default nextConfig;

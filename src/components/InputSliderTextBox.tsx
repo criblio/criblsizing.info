@@ -32,11 +32,16 @@ export const InputSliderTextBox: React.FC<InputSliderTextBoxProps> = (props: {
     const maxValue = props.maxValue;
     const step = props.step;
 
+
     const handleChange = (value: SliderValue) => {
         if (isNaN(Number(value))) return;
 
-        setInputValue(value.toString());
-        props.setValue(Number(value))
+        if (Number(value) >= minValue && Number(value) <= maxValue) {
+            setInputValue(value.toString());
+            props.setValue(Number(value))
+        } else {
+            return;
+        }
     };
 
     useEffect(() => {

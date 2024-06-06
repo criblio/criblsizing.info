@@ -159,7 +159,7 @@ export const CriblLakeCalculation: React.FC<CriblLakeCalculationProps> = (props:
                         <InputSliderTextBox label="Compression Ratio" tooltipText=":1" minValue={1} maxValue={25} step={1} value={compressionRatio} setValue={setCompressionRatio} />
                     </div>
                     <div className="col-span-1">
-                        <InputSliderTextBox label="Retention Period (Months)" tooltipText="month(s)" minValue={0} maxValue={72} step={1} value={retentionPeriod} setValue={setRetentionPeriod} />
+                        <InputSliderTextBox label="Retention Period (Months)" tooltipText="month(s)" minValue={1} maxValue={72} step={1} value={retentionPeriod} setValue={setRetentionPeriod} />
                     </div>
                     <div className="col-span-1">
                         <InputSliderTextBox label="Forecast Duration" tooltipText="year(s)" minValue={0} maxValue={16} step={1} value={forecastDuration} setValue={setForecastDuration} />

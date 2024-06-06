@@ -7,17 +7,16 @@ import { compressToBase64, decompressFromBase64 } from 'lz-string'
 
 export default function Home() {
 
-  const [workerGroupConfigs, setWorkerGroupConfigs] = useState<Map<string, string>>(new Map());
-  return (
-    <>
-      <div className="bg-white">
-        <Suspense>
-          <NavBar activeTab="stream" />
-        </Suspense>
-        <Suspense>
-        <CriblWorkerGroup name={"default"} workerGroupConfigs={workerGroupConfigs} setWorkerGroupConfigs={setWorkerGroupConfigs} />
-        </Suspense>
-      </div >
-    </>
-  );
+    return (
+        <>
+            <div className="bg-white">
+                <Suspense>
+                    <NavBar activeTab="stream" />
+                </Suspense>
+                <Suspense>
+                    <CriblWorkerGroup name={"default"} />
+                </Suspense>
+            </div >
+        </>
+    );
 }

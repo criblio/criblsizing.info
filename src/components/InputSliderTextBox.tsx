@@ -75,7 +75,7 @@ export const InputSliderTextBox: React.FC<InputSliderTextBoxProps> = (props: {
                         }}
                         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                             if (e.key === "Enter" && !isNaN(Number(inputValue))) {
-                                props.setValue(Number(inputValue));
+                                handleChange(Number(inputValue));
                             }
                         }}
                     />

@@ -1,11 +1,9 @@
 'use client'
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from "@nextui-org/table";
-
 import { InputSelect } from "@/components/InputSelect";
 import { InputSliderTextBox } from "@/components/InputSliderTextBox";
 import { InputNumber } from "@/components/InputNumber";
 import { QueuingAccordion } from "@/components/QueuingAccordion";
-import { useState } from "react";
 import { Calculations, totalThruput } from "@/utils/sizingCalculations";
 import { CriblWorkerGroupAdvOptions } from "@/components/stream/CriblWorkerGroupAdvOptions";
 
@@ -13,16 +11,10 @@ import { parseAsBoolean, parseAsFloat, parseAsInteger, parseAsString, useQuerySt
 
 type CriblWorkerGroupProps = {
     name: string
-
-    workerGroupConfigs: Map<string, string>
-    setWorkerGroupConfigs: React.Dispatch<React.SetStateAction<Map<string, string>>>
 }
 
 export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
     name: string
-
-    workerGroupConfigs: Map<string, string>
-    setWorkerGroupConfigs: React.Dispatch<React.SetStateAction<Map<string, string>>>
 }) => {
 
     const optionsInboundSustainedVolume = [

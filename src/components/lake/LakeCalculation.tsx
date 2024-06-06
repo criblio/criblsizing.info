@@ -142,7 +142,7 @@ export const CriblLakeCalculation: React.FC<CriblLakeCalculationProps> = (props:
             return rows;
         }
 
-        if (calculationRows.length > 0) {
+        if (calculationRows.length > 0 && calculationRows.length === (forecastDuration * 12)) {
             setCalculationSummaryRows(calculateSummary(calculationRows))
         }
     }, [forecastDuration, calculationRows])

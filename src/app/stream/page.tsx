@@ -14,7 +14,9 @@ export default function Home() {
         <Suspense>
           <NavBar activeTab="stream" />
         </Suspense>
+        <Suspense>
         <CriblWorkerGroup name={"default"} workerGroupConfigs={workerGroupConfigs} setWorkerGroupConfigs={setWorkerGroupConfigs} />
+        </Suspense>
       </div >
     </>
   );

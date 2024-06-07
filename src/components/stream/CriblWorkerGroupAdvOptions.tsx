@@ -19,15 +19,13 @@ export const CriblWorkerGroupAdvOptions: React.FC<CriblWorkerGroupAdvOptionsProp
 }) => {
     return (
         <CheckboxGroup
-            label="Resiliency Options"
             color="secondary"
-            defaultValue={["worker_redundency"]}
             value={[
-                props.workerRedundency ? 'worker_redundency' : '', props.tcpLoadBalancing ? 'tcp_lb': ''
+                props.workerRedundency ? 'worker_redundency' : '', props.tcpLoadBalancing ? 'tcp_lb' : ''
             ].filter((x) => x !== '')}
         >
-            <Checkbox classNames={{ label: "text-md" }} value="worker_redundency" onValueChange={props.setWorkerRedundency}>Worker Redundency (+1)</Checkbox>
-            <Checkbox classNames={{ label: "text-md" }} value="tcp_lb" onValueChange={props.setTcpLoadBalancing}>TCP Load Balancer Process</Checkbox>
+            <Checkbox classNames={{ label: "text-md" }} value="worker_redundency" isSelected={props.workerRedundency} onValueChange={props.setWorkerRedundency}>Worker Redundency (+1)</Checkbox>
+            <Checkbox classNames={{ label: "text-md" }} value="tcp_lb" isSelected={props.tcpLoadBalancing} onValueChange={props.setTcpLoadBalancing}>TCP Load Balancer Process</Checkbox>
         </CheckboxGroup>
     )
 }

@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from "react";
-import { Select, SelectSection, SelectItem } from "@nextui-org/select";
+import React from "react";
+import { Select, SelectItem } from "@nextui-org/select";
 
 type InputSelectProps = {
     label: string

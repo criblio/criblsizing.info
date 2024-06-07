@@ -1,4 +1,5 @@
 'use client'
+
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from "@nextui-org/table";
 import { InputSelect } from "@/components/InputSelect";
 import { InputSliderTextBox } from "@/components/InputSliderTextBox";
@@ -34,13 +35,13 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
         { key: "heavy", label: "Heavy Processing", value: 0.6 }
     ];
 
-    const [dataVolumeIn, setDataVolumeIn] = useQueryState("stream-in_tb", parseAsInteger.withDefault(0));
+    const [dataVolumeIn, setDataVolumeIn] = useQueryState("stream-in_tb", parseAsFloat.withDefault(0.0));
     const [connectionVolumeIn, setConnectionVolumeIn] = useQueryState("stream-in_conns", parseAsInteger.withDefault(0));
     const [sustainedVolumeIn, setSustainedVolumeIn] = useQueryState("stream-in_conn_eps", parseAsString.withDefault("3epsc"));
     const [dataVolumeOut, setDataVolumeOut] = useQueryState("stream-out_tb", parseAsInteger.withDefault(0));
 
     const [cpuType, setCpuType] = useQueryState("stream-cpu_type", parseAsString.withDefault("x86-64ht"));
-    const [cpuCount, setCpuCount] = useQueryState("stream-cpu_count", parseAsInteger.withDefault(0));
+    const [cpuCount, setCpuCount] = useQueryState("stream-cpu_count", parseAsInteger.withDefault(4));
     const [cpuSpeed, setCpuSpeed] = useQueryState("stream-cpu_speed", parseAsFloat.withDefault(3.0));
     const [cpuAvailability, setCpuAvailability] = useQueryState("stream-cpu_availability", parseAsInteger.withDefault(-2));
 

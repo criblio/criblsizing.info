@@ -1,6 +1,6 @@
 'use client'
 
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode } from "react";
 import { Input } from "@nextui-org/input";
 
 type InputNumberProps = {

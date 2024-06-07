@@ -1,3 +1,4 @@
+'use client'
 
 import { CheckboxGroup, Checkbox } from "@nextui-org/checkbox";
 

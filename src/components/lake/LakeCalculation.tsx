@@ -1,8 +1,8 @@
 'use client'
+
 import { Accordion, AccordionItem } from "@nextui-org/accordion";
 import { InputSliderTextBox } from "@/components/InputSliderTextBox"
-import { NavBar } from "@/components/NavBar"
-import { Suspense, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import {
     Table,
     TableHeader,
@@ -50,11 +50,11 @@ export const CriblLakeCalculation: React.FC<CriblLakeCalculationProps> = (props:
         },
         {
             key: "credits_formatted",
-            label: "CREDITS"
+            label: "CREDITS CONSUMED"
         },
         {
             key: "cumulative_credits_formatted",
-            label: "CUMULATIVE CREDITS"
+            label: "CUMULATIVE CREDITS CONSUMED"
         }
     ]
 
@@ -69,11 +69,11 @@ export const CriblLakeCalculation: React.FC<CriblLakeCalculationProps> = (props:
         },
         {
             key: "credits_formatted",
-            label: "CREDITS",
+            label: "CREDITS CONSUMED",
         },
         {
             key: "cumulative_credits_formatted",
-            label: "CUMULATIVE CREDITS"
+            label: "CUMULATIVE CREDITS CONSUMED"
         }
     ];
 
@@ -180,11 +180,11 @@ export const CriblLakeCalculation: React.FC<CriblLakeCalculationProps> = (props:
                     </TableBody>
                 </Table>
             </div>
-            <div className="p-4">
+            <div className="my-4 mx-2">
                 <Accordion variant="splitted">
                     <AccordionItem key="1" aria-label="Detailed Calculation Information" title="Detailed Calculation Information">
                         <div className="m-4">
-                            <Table aria-label="Detailed Calculation Information">
+                            <Table aria-label="Detailed Calculation Information" isStriped>
                                 <TableHeader columns={calculationDetailColumns}>
                                     {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
                                 </TableHeader>

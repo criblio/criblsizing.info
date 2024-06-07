@@ -75,7 +75,6 @@ export const InputSliderTextBox: React.FC<InputSliderTextBoxProps> = (props: {
                         }
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             const v = e.target.value;
-
                             handleChange(Number(v));
                         }}
                         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {

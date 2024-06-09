@@ -17,11 +17,11 @@ export default function Home() {
                 <Suspense>
                     <NavBar />
                 </Suspense>
-                <div className="flex w-full flex-col m-4">
-                    <Tabs aria-label="product" color="secondary" onSelectionChange={(newTab) => {setSelectedTab(newTab)}} >
+                <div className="flex flex-col m-4 justify-items-center">
+                    <Tabs aria-label="product" color="secondary" onSelectionChange={(newTab) => {setSelectedTab(newTab)}} fullWidth>
                         <Tab key="stream" title={
                             <div className="flex items-center space-x-1">
-                                <Image width={"35"} src={`Cribl-Stream-Mark-1C-${selectedTab.toString() === "stream" ? "White" : "Teal"}.png`} />
+                                <Image alt="cribl stream logo" width={"35"} src={`Cribl-Stream-Mark-1C-${selectedTab.toString() === "stream" ? "White" : "Teal"}.png`} />
                                 <span>Stream</span>
                             </div>
                         }>
@@ -29,7 +29,7 @@ export default function Home() {
                         </Tab>
                         <Tab key="lake" title={
                             <div className="flex items-center space-x-1">
-                                <Image width={"35"} src={`Cribl-Lake-Mark-1C-${selectedTab.toString() === "lake" ? "White" : "Teal"}.png`} />
+                                <Image alt="cribl lake logo" width={"35"} src={`Cribl-Lake-Mark-1C-${selectedTab.toString() === "lake" ? "White" : "Teal"}.png`} />
                                 <span>Lake</span>
                             </div>
                         }>

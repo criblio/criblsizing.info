@@ -4,8 +4,8 @@ import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from 
 import { InputSelect } from "@/components/InputSelect";
 import { InputSliderTextBox } from "@/components/InputSliderTextBox";
 import { InputNumber } from "@/components/InputNumber";
-import { QueuingAccordion } from "@/components/QueuingAccordion";
-import { Calculations, totalThruput } from "@/utils/sizingCalculations";
+import { QueuingOptions } from "@/components/stream/QueuingOptions";
+import { Calculations } from "@/utils/sizingCalculations";
 import { CriblWorkerGroupAdvOptions } from "@/components/stream/CriblWorkerGroupAdvOptions";
 
 import { parseAsBoolean, parseAsFloat, parseAsInteger, parseAsString, useQueryState } from 'nuqs'
@@ -35,23 +35,25 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
         { key: "heavy", label: "Heavy Processing", value: 0.6 }
     ];
 
-    const [dataVolumeIn, setDataVolumeIn] = useQueryState("stream-in_tb", parseAsFloat.withDefault(0.0));
+    const [dataVolumeIn, setDataVolumeIn] = useQueryState("stream-in_tb", parseAsFloat.withDefault(0.5));
     const [connectionVolumeIn, setConnectionVolumeIn] = useQueryState("stream-in_conns", parseAsInteger.withDefault(0));
     const [sustainedVolumeIn, setSustainedVolumeIn] = useQueryState("stream-in_conn_eps", parseAsString.withDefault("3epsc"));
-    const [dataVolumeOut, setDataVolumeOut] = useQueryState("stream-out_tb", parseAsInteger.withDefault(0));
+    const [dataVolumeOut, setDataVolumeOut] = useQueryState("stream-out_tb", parseAsFloat.withDefault(0.5));
 
     const [cpuType, setCpuType] = useQueryState("stream-cpu_type", parseAsString.withDefault("x86-64ht"));
-    const [cpuCount, setCpuCount] = useQueryState("stream-cpu_count", parseAsInteger.withDefault(4));
+    const [cpuCount, setCpuCount] = useQueryState("stream-cpu_count", parseAsInteger.withDefault(8));
     const [cpuSpeed, setCpuSpeed] = useQueryState("stream-cpu_speed", parseAsFloat.withDefault(3.0));
     const [cpuAvailability, setCpuAvailability] = useQueryState("stream-cpu_availability", parseAsInteger.withDefault(-2));
 
     const [enableSPq, setEnableSPq] = useQueryState("stream-spq_enabled", parseAsBoolean.withDefault(false));
-    const [durationSPq, setDurationSPq] = useQueryState("stream-spq_duration_hrs", parseAsInteger.withDefault(0));
-    const [enableSPqCompression, setEnableSPqCompression] = useQueryState("stream-spq_compress_enabled", parseAsBoolean.withDefault(false));
+    const [durationSPq, setDurationSPq] = useQueryState("stream-spq_duration_hrs", parseAsInteger.withDefault(4));
+    const [percentQueueSPq, setPercentQueueSPq] = useQueryState("stream-spq_perc_queue", parseAsInteger.withDefault(50));
+    const [enableSPqCompression, setEnableSPqCompression] = useQueryState("stream-spq_compress_enabled", parseAsBoolean.withDefault(true));
 
     const [enableDPq, setEnableDPq] = useQueryState("stream-dpq_enabled", parseAsBoolean.withDefault(false));
-    const [durationDPq, setDurationDPq] = useQueryState("stream-dpq_duration_hrs", parseAsInteger.withDefault(0));
-    const [enableDPqCompression, setEnableDPqCompression] = useQueryState("stream-dpq_compress_enabled", parseAsBoolean.withDefault(false));
+    const [durationDPq, setDurationDPq] = useQueryState("stream-dpq_duration_hrs", parseAsInteger.withDefault(4));
+    const [percentQueueDPq, setPercentQueueDPq] = useQueryState("stream-dpq_perc_queue", parseAsInteger.withDefault(50));
+    const [enableDPqCompression, setEnableDPqCompression] = useQueryState("stream-dpq_compress_enabled", parseAsBoolean.withDefault(true));
 
     const [workerRedundancy, setWorkerRedundency] = useQueryState("stream-worker_redundency", parseAsBoolean.withDefault(true));
     const [tcpLoadBalancing, setTcpLoadBalancing] = useQueryState("stream-tcp_loadbalancing", parseAsBoolean.withDefault(false));
@@ -69,15 +71,16 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
     const workerProcessCountByThruput = Calculations.workerProcessCountByThruput(workerGroupThruput, processThruput)
     const workerProcessCountByConnections = Calculations.workerProcessCountByConnections(connectionVolumeIn, (optionsInboundSustainedVolume.find((x) => x.key === sustainedVolumeIn) || optionsInboundSustainedVolume[0]).value)
 
-    const sPqDiskGbReq = enableSPq === true ? Calculations.persistentQueueDisk(dataVolumeIn, durationSPq, enableSPqCompression, 500) : 0;
-    const dPqDiskGbReq = enableDPq === true ? Calculations.persistentQueueDisk(dataVolumeOut, durationDPq, enableDPqCompression, 500) : 0;
+    const sPqDiskGbReq = enableSPq === true ? Math.ceil(Calculations.persistentQueueDisk(dataVolumeIn, durationSPq, enableSPqCompression, 500) * (percentQueueSPq / 100)) : 0;
+    const dPqDiskGbReq = enableDPq === true ? Math.ceil(Calculations.persistentQueueDisk(dataVolumeOut, durationDPq, enableDPqCompression, 500) * (percentQueueDPq / 100)) : 0;
 
     // Use which ever method requires more worker processes (thruput vs conns)
     const workerProcesses = Math.max(...[workerProcessCountByThruput, workerProcessCountByConnections]);
     const workerMemory = cpuCount * Calculations.workerProcessMemory(lookupTableSize)
 
-    const processesPerNode = (cpuAvailability < 0 ? cpuCount + cpuAvailability : cpuAvailability) - (tcpLoadBalancing ? 1 : 0);
-    const requiredWorkerNodes = (workerProcesses / processesPerNode >= 1 ? workerProcesses / processesPerNode : 1);
+    // Calculate available worker processes per worker. CPU Count - vCPU (and minus addtl. 1 if tcpLoadBalance is enabled)
+    const processesPerNode = Math.ceil(cpuAvailability < 0 ? cpuCount + cpuAvailability : cpuAvailability) - (tcpLoadBalancing ? 1 : 0);
+    const requiredWorkerNodes = Math.ceil(workerProcesses / processesPerNode >= 1 ? workerProcesses / processesPerNode : 1);
 
     const sPqDiskGbReqPerWorker = Math.ceil(sPqDiskGbReq / requiredWorkerNodes);
     const dPqDiskGbReqPerWorker = Math.ceil(dPqDiskGbReq / requiredWorkerNodes);
@@ -85,7 +88,7 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
     return (
         <>
             <div className="bg-white">
-                <div className="bg-gray-50 m-4 p-4 border rounded-md">
+                <div className="bg-gray-50 p-4 border rounded-md">
                     <div className="text-2xl mb-4">
                         <h2>
                             Data Volume
@@ -93,20 +96,20 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                     </div>
                     <div className="grid grid-cols-4 gap-4 py-4">
                         <div className="col-span-2">
-                            <InputSliderTextBox label="Inbound Data Volume" tooltipText="TB/day" minValue={0} maxValue={50} step={0.5} value={dataVolumeIn} setValue={setDataVolumeIn} />
+                            <InputSliderTextBox label="Inbound Data Volume" endText="TB/day" minValue={0} maxValue={50} step={0.25} value={dataVolumeIn} setValue={setDataVolumeIn} />
                         </div>
                         <div className="col-span-2">
-                            <InputSliderTextBox label="Inbound TCP Connections" tooltipText="connections" minValue={0} maxValue={300000} step={300} value={connectionVolumeIn} setValue={setConnectionVolumeIn} />
+                            <InputSliderTextBox label="Inbound TCP Connections" endText="connections" minValue={0} maxValue={300000} step={300} value={connectionVolumeIn} setValue={setConnectionVolumeIn} />
                         </div>
                     </div>
                     <div className="py-4">
                         <InputSelect label="Inbound Sustained Volume" placeholder="Sustained Volume" defaultKeyIndex={0} options={optionsInboundSustainedVolume} value={sustainedVolumeIn} setValue={setSustainedVolumeIn} />
                     </div>
                     <div className="mt-4">
-                        <InputSliderTextBox label="Outbound Data Volume" tooltipText="TB/day" minValue={0} maxValue={50} step={1} value={dataVolumeOut} setValue={setDataVolumeOut} />
+                        <InputSliderTextBox label="Outbound Data Volume" endText="TB/day" minValue={0} maxValue={50} step={0.25} value={dataVolumeOut} setValue={setDataVolumeOut} />
                     </div>
                 </div>
-                <div className="bg-gray-50 m-4 p-4 border rounded-md">
+                <div className="bg-gray-50 my-4 p-4 border rounded-md">
                     <div className="text-2xl mb-4">
                         <h2>
                             CPU Information
@@ -143,24 +146,26 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                         </div>
                     </div>
                 </div>
-                <div className="bg-gray-50 m-4 p-4 border rounded-md">
+                <div className="bg-gray-50 my-4 p-4 border rounded-md">
                     <div className="text-2xl mb-4">
                         <h2>
                             Persistent Queuing
                         </h2>
                         <div className="pt-4">
-                            <QueuingAccordion
+                            <QueuingOptions
                                 enableSPq={enableSPq} setEnableSPq={setEnableSPq}
                                 durationSPq={durationSPq} setDurationSPq={setDurationSPq}
                                 enableSPqCompression={enableSPqCompression} setEnableSPqCompression={setEnableSPqCompression}
+                                percentQueueSPq={percentQueueSPq} setPercentQueueSPq={setPercentQueueSPq}
                                 enableDPq={enableDPq} setEnableDPq={setEnableDPq}
                                 durationDPq={durationDPq} setDurationDPq={setDurationDPq}
+                                percentQueueDPq={percentQueueDPq} setPercentQueueDPq={setPercentQueueDPq}
                                 enableDPqCompression={enableDPqCompression} setEnableDPqCompression={setEnableDPqCompression}
                             />
                         </div>
                     </div>
                 </div>
-                <div className="bg-gray-50 m-4 p-4 border rounded-md">
+                <div className="bg-gray-50 my-4 p-4 border rounded-md">
                     <div className="text-2xl mb-4">
                         <h2>
                             Worker Group Advanced Options
@@ -194,7 +199,7 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                         </div>
                     </div>
                 </div>
-                <div className="m-4 p-4 columns-2 gap-6">
+                <div className="py-4 columns-2 gap-6">
                     <Table hideHeader isStriped aria-label="Example static collection table">
                         <TableHeader>
                             <TableColumn>CALCULATION</TableColumn>
@@ -249,12 +254,15 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                         <ul>
                             <li style={{ fontSize: 18 }}>
                                 <strong>
-                                    Workers: {Math.ceil(requiredWorkerNodes + (workerRedundancy ? 1 : 0))} {cpuCount}-vCPUs,{" "}
-                                    {Math.ceil(workerMemory)} GB RAM
-                                    {enableSPq === true ? `, ${sPqDiskGbReqPerWorker} GB Disk (sPQ)` : null}
-                                    {enableDPq === true ? `, ${dPqDiskGbReqPerWorker} GB Disk (dPQ)` : null}
-                                    {" server(s) "}
-                                </strong>
+                                    Total Workers: </strong>{workerRedundancy ? `${Math.ceil(requiredWorkerNodes)} + 1 (for redundency) = ${Math.ceil(requiredWorkerNodes) + 1}` : Math.ceil(requiredWorkerNodes)} servers
+                                <br />
+                                <strong>Worker Specification: </strong>
+                                {cpuCount}-vCPUs,{" "}
+                                {Math.ceil(workerMemory)} GB RAM
+                                {enableSPq === true ? `, ${sPqDiskGbReqPerWorker} GB Disk (sPQ)` : null}
+                                {enableDPq === true ? `, ${dPqDiskGbReqPerWorker} GB Disk (dPQ)` : null}
+
+
                             </li>
                         </ul>
                     </div>

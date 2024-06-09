@@ -50,7 +50,7 @@ export function workerProcessCountByConnections(inTcpConnections: number, proces
  * @returns disk capacity required as gb for persistent queue
  */
 export function persistentQueueDisk(volume: number, durationHours: number, compression: boolean, minimumVolume: number = 0, compressionRatio: number = 0.125): number {
-    return Math.max(...[volume * 1000, minimumVolume]) * durationHours * (compression === true ? compressionRatio : 1)
+    return (Math.max(...[volume * 1000, minimumVolume]) / 24) * durationHours * (compression === true ? compressionRatio : 1)
 }
 
 /**

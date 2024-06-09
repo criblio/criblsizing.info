@@ -12,6 +12,7 @@ import {
     TableCell, getKeyValue
 } from "@nextui-org/table";
 import { parseAsBoolean, parseAsInteger, useQueryState } from "nuqs";
+import { Input } from "@nextui-org/react";
 
 interface MonthlyCalculation {
     month: number; storage_gb: number; storage_gb_formatted: string; credits: number; credits_formatted: string; cumulative_credits: number; cumulative_credits_formatted: string;
@@ -150,23 +151,28 @@ export const CriblLakeCalculation: React.FC<CriblLakeCalculationProps> = (props:
 
     return (
         <>
-            <div className="m-4">
+            <div className="my-4 bg-gray-50 p-4 border rounded-md">
                 <div className="grid grid-cols-4 gap-4 py-4">
                     <div className="col-span-1">
-                        <InputSliderTextBox label="Daily Ingestion" tooltipText="GB/day" minValue={0} maxValue={2500} step={100} value={dailyIngestion} setValue={setDailyIngestion} />
+                        {/* <InputSliderTextBox label="Daily Ingestion" endText="GB/day" minValue={0} maxValue={50000} step={100} value={dailyIngestion} setValue={setDailyIngestion} /> */}
+                        <Input variant="bordered" label="Daily Ingestion" endContent={"GB/day"} type="number" labelPlacement={"outside"} min={0} step={100} value={dailyIngestion.toString()} onValueChange={(e) => { setDailyIngestion(Number(e)) }}
+                            classNames={{
+                                label: "text-medium"
+                            }}
+                        />
                     </div>
                     <div className="col-span-1">
-                        <InputSliderTextBox label="Compression Ratio" tooltipText=":1" minValue={1} maxValue={25} step={1} value={compressionRatio} setValue={setCompressionRatio} />
+                        <InputSliderTextBox label="Compression Ratio" endText=":1" minValue={1} maxValue={25} step={1} value={compressionRatio} setValue={setCompressionRatio} />
                     </div>
                     <div className="col-span-1">
-                        <InputSliderTextBox label="Retention Period (Months)" tooltipText="month(s)" minValue={1} maxValue={72} step={1} value={retentionPeriod} setValue={setRetentionPeriod} />
+                        <InputSliderTextBox label="Retention Period (Months)" endText="month(s)" minValue={1} maxValue={72} step={1} value={retentionPeriod} setValue={setRetentionPeriod} />
                     </div>
                     <div className="col-span-1">
-                        <InputSliderTextBox label="Forecast Duration" tooltipText="year(s)" minValue={0} maxValue={16} step={1} value={forecastDuration} setValue={setForecastDuration} />
+                        <InputSliderTextBox label="Forecast Duration" endText="year(s)" minValue={0} maxValue={16} step={1} value={forecastDuration} setValue={setForecastDuration} />
                     </div>
                 </div>
             </div>
-            <div className="m-4">
+            <div className="my-4">
                 <Table aria-label="Example table with dynamic content">
                     <TableHeader columns={calculationSummaryColumns}>
                         {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
@@ -180,8 +186,8 @@ export const CriblLakeCalculation: React.FC<CriblLakeCalculationProps> = (props:
                     </TableBody>
                 </Table>
             </div>
-            <div className="my-4 mx-2">
-                <Accordion variant="splitted">
+            <div className="my-4">
+                <Accordion variant="splitted" fullWidth>
                     <AccordionItem key="1" aria-label="Detailed Calculation Information" title="Detailed Calculation Information">
                         <div className="m-4">
                             <Table aria-label="Detailed Calculation Information" isStriped>

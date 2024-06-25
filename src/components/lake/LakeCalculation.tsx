@@ -154,7 +154,6 @@ export const CriblLakeCalculation: React.FC<CriblLakeCalculationProps> = (props:
             <div className="my-4 bg-gray-50 p-4 border rounded-md">
                 <div className="grid grid-cols-4 gap-4 py-4">
                     <div className="col-span-1">
-                        {/* <InputSliderTextBox label="Daily Ingestion" endText="GB/day" minValue={0} maxValue={50000} step={100} value={dailyIngestion} setValue={setDailyIngestion} /> */}
                         <Input variant="bordered" label="Daily Ingestion" endContent={"GB/day"} type="number" labelPlacement={"outside"} min={0} step={100} value={dailyIngestion.toString()} onValueChange={(e) => { setDailyIngestion(Number(e)) }}
                             classNames={{
                                 label: "text-medium"

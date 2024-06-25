@@ -99,7 +99,7 @@ export const CriblWorkerGroup: React.FC<CriblWorkerGroupProps> = (props: {
                             <InputSliderTextBox label="Inbound Data Volume" endText="TB/day" minValue={0} maxValue={50} step={0.25} value={dataVolumeIn} setValue={setDataVolumeIn} tooltipAddition="" />
                         </div>
                         <div className="col-span-2">
-                            <InputSliderTextBox label="Inbound TCP Connections" endText="connections" minValue={0} maxValue={300000} step={300} value={connectionVolumeIn} setValue={setConnectionVolumeIn} tooltipAddition="" />
+                            <InputSliderTextBox label="Inbound TCP Connections" endText="connections" minValue={0} maxValue={300000} step={300} value={connectionVolumeIn} setValue={setConnectionVolumeIn} tooltipAddition="Example: An agent would count as one connection." />
                         </div>
                     </div>
                     <div className="py-4">

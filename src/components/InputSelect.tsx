@@ -31,6 +31,7 @@ export const InputSelect: React.FC<InputSelectProps> = (props: {
             items={props.options}
             defaultSelectedKeys={[props.options[props.defaultKeyIndex].key]}
             value={props.value}
+            disallowEmptySelection={true}
             onChange={(e) => {props.setValue(e.target.value)}}
         >
             {props.options.map((option) => (

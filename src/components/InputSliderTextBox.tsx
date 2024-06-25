@@ -12,17 +12,19 @@ type InputSliderTextBoxProps = {
     minValue: number
     maxValue: number
     step: number
+    tooltipAddition: string;
 
     value: number;
     setValue: React.Dispatch<React.SetStateAction<number>>
 }
 
 export const InputSliderTextBox: React.FC<InputSliderTextBoxProps> = (props: {
-    label: string
-    endText: string
-    minValue: number
-    maxValue: number
+    label: string;
+    endText: string;
+    minValue: number;
+    maxValue: number;
     step: number;
+    tooltipAddition: string;
 
     value: number;
     setValue: React.Dispatch<React.SetStateAction<number>>
@@ -34,6 +36,8 @@ export const InputSliderTextBox: React.FC<InputSliderTextBoxProps> = (props: {
     const minValue = props.minValue;
     const maxValue = props.maxValue;
     const step = props.step;
+
+    const tooltipAddition = props.tooltipAddition;
 
 
     const handleChange = (value: SliderValue) => {
@@ -65,7 +69,7 @@ export const InputSliderTextBox: React.FC<InputSliderTextBoxProps> = (props: {
                   {children}
                   <Tooltip
                     className="w-[200px] px-1.5 text-tiny text-default-600 rounded-small"
-                    content="For more granularity, use text box."
+                    content={`${tooltipAddition !== "" ? tooltipAddition + " " : ''}For more granularity, use text box.`}
                     placement="right"
                   >
                     <span className="transition-opacity opacity-80 hover:opacity-100">
